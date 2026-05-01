@@ -598,6 +598,17 @@ copy_icon_and_update_path() {
     local target_icon="$build_generated_dir/$icon_file_name"
     cp "$source_icon_path" "$target_icon" && write_color_output "Icon copied to: $target_icon" "Green"
 
+    # Copy sibling PNGs from the icon directory so plugins can reference
+    # alternative icon variants (e.g. icon-anchored.png) at runtime via
+    # `file://${pluginDir}/<name>.png`.
+    local icon_dir
+    icon_dir="$(dirname "$source_icon_path")"
+    for extra in "$icon_dir"/*.png; do
+        [ -f "$extra" ] || continue
+        [ "$extra" = "$source_icon_path" ] && continue
+        cp "$extra" "$build_generated_dir/" && write_color_output "Extra asset copied: $(basename "$extra")" "Green"
+    done
+
     if command -v jq >/dev/null 2>&1; then
         jq --arg path "/$icon_file_name" '.iconPath = $path' "$build_generated_config_file" > "${build_generated_config_file}.tmp" && mv "${build_generated_config_file}.tmp" "$build_generated_config_file"
     elif command -v python3 >/dev/null 2>&1; then

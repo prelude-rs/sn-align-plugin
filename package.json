@@ -1,5 +1,5 @@
 {
-  "name": "SNPluginAlign",
+  "name": "SnAlign",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -7,9 +7,13 @@
     "ios": "react-native run-ios",
     "lint": "eslint .",
     "start": "react-native start",
-    "test": "jest"
+    "test": "jest",
+    "coverage": "jest --coverage",
+    "clean": "rm -rf build",
+    "build": "npm run --silent clean && bash buildPlugin.sh"
   },
   "dependencies": {
+    "@react-native-async-storage/async-storage": "^3.0.2",
     "react": "19.0.0",
     "react-native": "0.79.2",
     "sn-plugin-lib": "^0.1.19"
