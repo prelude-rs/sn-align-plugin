@@ -70,9 +70,9 @@ chore: update dependencies
 1. **Never push directly to `dev` or `main`.** All code enters via PR.
 2. **Target branch is `dev`** (unless hotfix to `main`).
 3. **Run CI checks locally before opening PR:**
-   - `golangci-lint run ./...`
-   - `go test -race -cover -count=1 ./...`
-   - `go build -o /dev/null ./search-api/cmd/api && go build -o /dev/null ./knowledge-ops/cmd/server && go build -o /dev/null ./knowledge-ops/cmd/migrate && go build -o /dev/null ./knowledge-ops/cmd/ingest && go build -o /dev/null ./knowledge-ops/cmd/reprocess`
+   - `npx eslint src/ App.tsx index.js __tests__/`
+   - `npx jest --coverage`
+   - `npm run build`
 4. **CI must pass + review before merge.**
 5. **Merge strategy:** squash or merge commit (via GitHub).
 
