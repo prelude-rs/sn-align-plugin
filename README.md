@@ -9,6 +9,10 @@ Use it to:
 - Center a small note inside a larger box.
 - Line up a row of icons to share a common vertical center.
 
+## Demo
+
+<video src="https://github.com/prelude-rs/sn-align-plugin/raw/main/assets/demo/AlignTool.mp4" controls></video>
+
 ## Install
 
 1. Download the latest `SnAlign.snplg` from the [Releases](../../releases) page.
@@ -32,7 +36,7 @@ The bounding box of that lasso is now your anchor.
 2. Tap **Alignment**. The popup opens.
 3. In the popup:
    - **Anchor** picker (left) — pick which point on the anchor to use (any corner, any edge mid-point, or the center).
-   - **Target** picker (right) — pick which point on the *current* lasso to align to that anchor point.
+   - **Target** picker (right) — pick which point on the _current_ lasso to align to that anchor point.
    - **Align X / Align Y** toggles — turn one off to keep that axis untouched. With both on, the target snaps to both axes.
    - **Gap X / Gap Y** steppers — push the target away from the anchor by that many pixels along each axis (positive = away, ±10 per tap).
 4. Tap **Apply Alignment**. The lasso slides into place. The move is undoable with the device's standard undo.
@@ -43,13 +47,13 @@ When an anchor is set, the popup also shows **Set New Anchor** — tap it to ove
 
 ## Examples
 
-| Effect | Anchor / Target | Toggles |
-|---|---|---|
-| Match left edges (vertical position untouched) | Left / Left | Align X only |
-| Match top edges (horizontal position untouched) | Top / Top | Align Y only |
-| Stack target directly below anchor, both centered | Bottom / Top | Align X + Y |
-| Place target to the right of anchor with a gap | Right / Left + Gap X = 20 | Align X + Y |
-| Center target inside anchor | Center / Center | Align X + Y |
+| Effect                                            | Anchor / Target           | Toggles      |
+| ------------------------------------------------- | ------------------------- | ------------ |
+| Match left edges (vertical position untouched)    | Left / Left               | Align X only |
+| Match top edges (horizontal position untouched)   | Top / Top                 | Align Y only |
+| Stack target directly below anchor, both centered | Bottom / Top              | Align X + Y  |
+| Place target to the right of anchor with a gap    | Right / Left + Gap X = 20 | Align X + Y  |
+| Center target inside anchor                       | Center / Center           | Align X + Y  |
 
 ## What works
 
