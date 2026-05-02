@@ -1,6 +1,6 @@
 import React from 'react';
-import {Pressable, Text, View} from 'react-native';
-import type {AlignmentType} from '../core/anchor';
+import {Pressable, Text, View, type ViewStyle} from 'react-native';
+import {ALL_ALIGNMENT_TYPES, type AlignmentType} from '../core/anchor';
 import {t} from '../i18n/i18n';
 import {dimensions, styles} from './styles';
 
@@ -41,7 +41,6 @@ const HEAD_DEPTH = ARM_LENGTH * Math.SQRT1_2; // L * cos(45°)
 const SQRT_HALF = Math.SQRT1_2;
 
 type Pt = {x: number; y: number};
-type Line = readonly [Pt, Pt];
 
 // Per cell type: the unit vector pointing toward the rim (the
 // direction the arrow points), and the unit vectors of the two
@@ -92,68 +91,72 @@ const SPECS: Record<AlignmentType, Spec> = {
   },
 };
 
-const arrowLines = (type: AlignmentType, cellSize: number): Line[] => {
+// Per-segment layout in cell-local coords. Computed once at module
+// load — geometry is purely a function of constants (cellSize, arm
+// length, stem length, spec). Color and `position: 'absolute'` are
+// applied at render time alongside the static fields.
+type SegmentLayout = {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+  transform: [{rotate: string}];
+};
+
+const segmentLayoutsFor = (type: AlignmentType, cellSize: number): SegmentLayout[] => {
   const c = cellSize / 2;
   const spec = SPECS[type];
   const halfTotal = (HEAD_DEPTH + STEM_LENGTH) / 2;
-  const apex: Pt = {
-    x: c + halfTotal * spec.direction.x,
-    y: c + halfTotal * spec.direction.y,
-  };
-  const tail: Pt = {
-    x: c - halfTotal * spec.direction.x,
-    y: c - halfTotal * spec.direction.y,
-  };
-  const stemHead: Pt = {
-    x: apex.x - HEAD_DEPTH * spec.direction.x,
-    y: apex.y - HEAD_DEPTH * spec.direction.y,
-  };
-  const armAEnd: Pt = {
-    x: apex.x + ARM_LENGTH * spec.armA.x,
-    y: apex.y + ARM_LENGTH * spec.armA.y,
-  };
-  const armBEnd: Pt = {
-    x: apex.x + ARM_LENGTH * spec.armB.x,
-    y: apex.y + ARM_LENGTH * spec.armB.y,
-  };
-  return [
+  const apex: Pt = {x: c + halfTotal * spec.direction.x, y: c + halfTotal * spec.direction.y};
+  const tail: Pt = {x: c - halfTotal * spec.direction.x, y: c - halfTotal * spec.direction.y};
+  const stemHead: Pt = {x: apex.x - HEAD_DEPTH * spec.direction.x, y: apex.y - HEAD_DEPTH * spec.direction.y};
+  const armAEnd: Pt = {x: apex.x + ARM_LENGTH * spec.armA.x, y: apex.y + ARM_LENGTH * spec.armA.y};
+  const armBEnd: Pt = {x: apex.x + ARM_LENGTH * spec.armB.x, y: apex.y + ARM_LENGTH * spec.armB.y};
+  const segments: Array<readonly [Pt, Pt]> = [
     [apex, armAEnd],
     [apex, armBEnd],
     [stemHead, tail],
   ];
+  return segments.map(([p1, p2]) => {
+    const dx = p2.x - p1.x;
+    const dy = p2.y - p1.y;
+    const length = Math.sqrt(dx * dx + dy * dy);
+    const angleDeg = (Math.atan2(dy, dx) * 180) / Math.PI;
+    const cx = (p1.x + p2.x) / 2;
+    const cy = (p1.y + p2.y) / 2;
+    return {
+      left: cx - length / 2,
+      top: cy - ARM_THICKNESS / 2,
+      width: length,
+      height: ARM_THICKNESS,
+      transform: [{rotate: `${angleDeg}deg`}],
+    };
+  });
 };
 
-const Arrow: React.FC<{type: AlignmentType; selected: boolean}> = ({type, selected}) => {
-  const stroke = selected ? '#ffffff' : '#000000';
-  const lines = arrowLines(type, dimensions.cellSize);
+const SEGMENTS_BY_TYPE: Record<AlignmentType, readonly SegmentLayout[]> = ALL_ALIGNMENT_TYPES.reduce((acc, type) => {
+  acc[type] = segmentLayoutsFor(type, dimensions.cellSize);
+  return acc;
+}, {} as Record<AlignmentType, readonly SegmentLayout[]>);
+
+// Static style objects so JSX doesn't allocate per render.
+const ARROW_BASE_STYLE: ViewStyle = {position: 'absolute'};
+const CELL_FILL_WHITE: ViewStyle = {backgroundColor: '#ffffff'};
+const CELL_FILL_BLACK: ViewStyle = {backgroundColor: '#000000'};
+const CELL_STYLE_UNSELECTED: ViewStyle[] = [styles.markCellBase, CELL_FILL_WHITE];
+const CELL_STYLE_SELECTED: ViewStyle[] = [styles.markCellBase, CELL_FILL_BLACK];
+
+const Arrow: React.FC<{type: AlignmentType; selected: boolean}> = React.memo(({type, selected}) => {
+  const backgroundColor = selected ? '#ffffff' : '#000000';
   return (
     <>
-      {lines.map((line, i) => {
-        const [p1, p2] = line;
-        const dx = p2.x - p1.x;
-        const dy = p2.y - p1.y;
-        const length = Math.sqrt(dx * dx + dy * dy);
-        const angleDeg = (Math.atan2(dy, dx) * 180) / Math.PI;
-        const cx = (p1.x + p2.x) / 2;
-        const cy = (p1.y + p2.y) / 2;
-        return (
-          <View
-            key={i}
-            style={{
-              position: 'absolute',
-              left: cx - length / 2,
-              top: cy - ARM_THICKNESS / 2,
-              width: length,
-              height: ARM_THICKNESS,
-              backgroundColor: stroke,
-              transform: [{rotate: `${angleDeg}deg`}],
-            }}
-          />
-        );
-      })}
+      {SEGMENTS_BY_TYPE[type].map((seg, i) => (
+        <View key={i} style={[ARROW_BASE_STYLE, seg, {backgroundColor}]} />
+      ))}
     </>
   );
-};
+});
+Arrow.displayName = 'Arrow';
 
 export const AnchorPanel: React.FC<AnchorPanelProps> = ({alignmentType, hasAnchor, onPick, onClear}) => (
   <View>
@@ -163,13 +166,13 @@ export const AnchorPanel: React.FC<AnchorPanelProps> = ({alignmentType, hasAncho
           <View key={ri} style={styles.markRow}>
             {row.map(cell => {
               if (isCenter(cell)) {
-                return <View key="center" style={[styles.markCellBase, {backgroundColor: '#ffffff'}]} />;
+                return <View key="center" style={CELL_STYLE_UNSELECTED} />;
               }
               const selected = alignmentType === cell.type;
               return (
                 <Pressable
                   key={cell.type}
-                  style={[styles.markCellBase, {backgroundColor: selected ? '#000000' : '#ffffff'}]}
+                  style={selected ? CELL_STYLE_SELECTED : CELL_STYLE_UNSELECTED}
                   onPress={() => onPick(cell.type)}>
                   <Arrow type={cell.type} selected={selected} />
                 </Pressable>

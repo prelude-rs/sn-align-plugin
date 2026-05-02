@@ -20,11 +20,13 @@ import {
   ICON_ANCHORED_FILENAME,
   ICON_FILENAME,
   resolveIconUri,
+  safeSetButtonState,
   type ButtonEvent,
   type ButtonListener,
   type PluginManagerLike,
 } from './buttonCommon';
 import {localizedApplyAlignmentName, localizedSetAnchorName} from '../i18n/i18n';
+import type {Logger} from '../sdk/types';
 
 const BUTTON_TYPE_LASSO_TOOLBAR = 2;
 const APP_TYPE_NOTE = 'NOTE';
@@ -41,8 +43,10 @@ export type RegisterLassoDeps = {
   pluginManager: PluginManagerLike;
   onPress: (event: ButtonEvent) => void;
   initialAnchored: boolean;
-  logger: {log: (msg: string) => void; warn: (msg: string) => void};
+  logger: Pick<Logger, 'log' | 'warn'>;
 };
+
+const TAG = 'align:button';
 
 const registerOne = async (
   pluginManager: PluginManagerLike,
@@ -56,14 +60,6 @@ const registerOne = async (
     editDataTypes: EDIT_DATA_TYPES_ALL,
     showType: 0,
   });
-};
-
-const safeSetButtonState = async (deps: RegisterLassoDeps, id: number, enable: boolean): Promise<void> => {
-  try {
-    await deps.pluginManager.setButtonState(id, enable);
-  } catch (e) {
-    deps.logger.warn(`[align:button] setButtonState(${id},${enable}) threw: ${(e as Error).message}`);
-  }
 };
 
 export const registerLassoButtons = async (deps: RegisterLassoDeps): Promise<void> => {
@@ -88,11 +84,11 @@ export const registerLassoButtons = async (deps: RegisterLassoDeps): Promise<voi
     icon: iconAnchoredUri,
   });
 
-  await safeSetButtonState(deps, LASSO_SET_ANCHOR_BUTTON_ID, !deps.initialAnchored);
-  await safeSetButtonState(deps, LASSO_APPLY_ALIGNMENT_BUTTON_ID, deps.initialAnchored);
+  await safeSetButtonState(deps.pluginManager, deps.logger, TAG, LASSO_SET_ANCHOR_BUTTON_ID, !deps.initialAnchored);
+  await safeSetButtonState(deps.pluginManager, deps.logger, TAG, LASSO_APPLY_ALIGNMENT_BUTTON_ID, deps.initialAnchored);
 
   deps.logger.log(
-    `[align:button] registered LASSO buttons (set=${LASSO_SET_ANCHOR_BUTTON_ID} enabled=${!deps.initialAnchored}, apply=${LASSO_APPLY_ALIGNMENT_BUTTON_ID} enabled=${
+    `[${TAG}] registered LASSO buttons (set=${LASSO_SET_ANCHOR_BUTTON_ID} enabled=${!deps.initialAnchored}, apply=${LASSO_APPLY_ALIGNMENT_BUTTON_ID} enabled=${
       deps.initialAnchored
     })`,
   );
