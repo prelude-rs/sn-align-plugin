@@ -29,8 +29,7 @@ jobs:
       - run: npm ci
       - run: npx jest --coverage
 
-  build:
-    name: Build
+  build-check:
     needs: [lint, test]
     runs-on: ubuntu-latest
     steps:
