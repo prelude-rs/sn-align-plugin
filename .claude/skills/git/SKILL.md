@@ -71,6 +71,8 @@ chore: update dependencies
 2. **Target branch is `dev`** (unless hotfix to `main`).
 3. **Run CI checks locally before opening PR:**
    - `npx eslint src/ App.tsx index.js __tests__/`
+   - `npx prettier --check "src/**/*.{ts,tsx}" "App.tsx" "index.js" "__tests__/**/*.ts"`
+   - `npx tsc --noEmit`
    - `npx jest --coverage`
    - `npm run build`
 4. **CI must pass + review before merge.**
