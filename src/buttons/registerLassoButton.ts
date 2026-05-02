@@ -30,11 +30,15 @@ import type {Logger} from '../sdk/types';
 
 const BUTTON_TYPE_LASSO_TOOLBAR = 2;
 const APP_TYPE_NOTE = 'NOTE';
-// 0=stroke, 1=title, 2=image, 3=text-box, 4=link. resizeLassoRect
-// is a pure visual translation of the lasso selection — it doesn't
-// care what's inside — so the button is meaningful for every lasso
-// content type.
-const EDIT_DATA_TYPES_ALL = [0, 1, 2, 3, 4];
+// 0=stroke, 1=title, 2=image, 3=text-box, 4=link, 5=geometry.
+// The firmware filters lasso buttons by the editDataTypes present in
+// the current selection (PluginButtonAdapter logs `pluginType: [3, 5]`
+// for a text-box + geometry selection). Geometry (5) was missing and
+// the Apply Alignment button greyed for any selection containing a
+// shape — verified on A5X2 firmware. resizeLassoRect is a pure visual
+// translation, so the button is meaningful for every lasso content
+// type; register for all six.
+const EDIT_DATA_TYPES_ALL = [0, 1, 2, 3, 4, 5];
 
 export const LASSO_SET_ANCHOR_BUTTON_ID = 201;
 export const LASSO_APPLY_ALIGNMENT_BUTTON_ID = 202;
