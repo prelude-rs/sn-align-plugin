@@ -1,8 +1,19 @@
 import React from 'react';
 import {Pressable, Text, View, type ViewStyle} from 'react-native';
 import {ALL_ALIGNMENT_TYPES, type AlignmentType} from '../core/anchor';
-import {t} from '../i18n/i18n';
+import {t, type StringId} from '../i18n/i18n';
 import {dimensions, styles} from './styles';
+
+const ALIGNMENT_LABEL_ID: Record<AlignmentType, StringId> = {
+  'top-left': 'mark.topLeft',
+  top: 'mark.top',
+  'top-right': 'mark.topRight',
+  right: 'mark.right',
+  'bottom-right': 'mark.bottomRight',
+  bottom: 'mark.bottom',
+  'bottom-left': 'mark.bottomLeft',
+  left: 'mark.left',
+};
 
 export type AnchorPanelProps = {
   alignmentType: AlignmentType;
@@ -184,7 +195,7 @@ export const AnchorPanel: React.FC<AnchorPanelProps> = ({alignmentType, hasAncho
     </View>
 
     <Text style={[styles.status, !hasAnchor && styles.statusEmpty]}>
-      {hasAnchor ? `${t('mark.savedAt')}: ${alignmentType}` : t('mark.noneYet')}
+      {hasAnchor ? `${t('mark.savedAt')}: ${t(ALIGNMENT_LABEL_ID[alignmentType])}` : t('mark.noneYet')}
     </Text>
 
     {hasAnchor ? (
