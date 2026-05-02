@@ -1,48 +1,53 @@
-// Persistence for the alignment state — both the user's preferred
-// alignmentType and the optional anchorBox. The two are orthogonal
-// (the user can change alignmentType without disturbing anchorBox)
-// but they share an envelope so a single load returns the full
-// state and a single save commits both.
+// Persistence for the alignment state — both the AlignmentConfig
+// (anchor + target reference points, axis toggles, gaps) and the
+// optional anchorBox. The two pieces are orthogonal (the user can
+// tweak config without disturbing the anchor) but share an envelope
+// so a single load returns the full state.
 //
 // Backend: in-memory only. The Supernote firmware doesn't expose a
 // key-value store through sn-plugin-lib, and the
 // @react-native-async-storage native module isn't included in the
-// plugin host (we observed `Native module is null, cannot access
-// legacy storage` on-device). sn-shapes' favoritesStorage uses the
-// same memory fallback for the same reason.
+// plugin host. Sibling plugins use the same memory fallback for the
+// same reason.
 //
-// Empirically the plugin's JS context survives across lasso taps and
-// across note swaps, so memory is sufficient for in-session
-// persistence. State is lost only when the host process itself is
-// killed (device restart, plugin reinstall).
+// The plugin's JS context survives across lasso taps and across note
+// swaps within a session, so memory is sufficient for in-session
+// persistence. State is lost when the host process is killed (device
+// restart, plugin reinstall).
 
-import {isAlignmentType, isAnchorBox, type AlignmentType, type Rect} from '../core/anchor';
+import {
+  isAlignmentConfig,
+  isAnchorBox,
+  type AlignmentConfig,
+  type Rect,
+  DEFAULT_ALIGNMENT_CONFIG,
+} from '../core/anchor';
 import type {Logger} from '../sdk/types';
 
 export const ANCHOR_STORAGE_KEY = '@snalign_anchor_state';
 
 export type AnchorState = {
-  readonly alignmentType: AlignmentType;
+  readonly config: AlignmentConfig;
   readonly anchorBox: Rect | null;
 };
 
 export type AnchorEnvelope = {
-  readonly version: 2;
-  readonly alignmentType: AlignmentType;
+  readonly version: 3;
+  readonly config: AlignmentConfig;
   readonly anchorBox: Rect | null;
 };
 
-const SCHEMA_VERSION = 2 as const;
+const SCHEMA_VERSION = 3 as const;
 
 export const DEFAULT_ANCHOR_STATE: AnchorState = {
-  alignmentType: 'left',
+  config: DEFAULT_ALIGNMENT_CONFIG,
   anchorBox: null,
 };
 
 export interface AnchorStorage {
   load(): Promise<AnchorState>;
   save(state: AnchorState): Promise<void>;
-  setAlignmentType(t: AlignmentType): Promise<void>;
+  setConfig(config: AlignmentConfig): Promise<void>;
   setAnchorBox(box: Rect | null): Promise<void>;
 }
 
@@ -69,18 +74,18 @@ const parseEnvelope = (raw: string | null): AnchorState => {
   if (env.version !== SCHEMA_VERSION) {
     return DEFAULT_ANCHOR_STATE;
   }
-  if (!isAlignmentType(env.alignmentType)) {
+  if (!isAlignmentConfig(env.config)) {
     return DEFAULT_ANCHOR_STATE;
   }
   const anchorBox =
     env.anchorBox === null || env.anchorBox === undefined ? null : isAnchorBox(env.anchorBox) ? env.anchorBox : null;
-  return {alignmentType: env.alignmentType, anchorBox};
+  return {config: env.config, anchorBox};
 };
 
 const serialiseEnvelope = (state: AnchorState): string => {
   const env: AnchorEnvelope = {
     version: SCHEMA_VERSION,
-    alignmentType: state.alignmentType,
+    config: state.config,
     anchorBox: state.anchorBox,
   };
   return JSON.stringify(env);
@@ -92,9 +97,9 @@ const buildStorage = (
 ): AnchorStorage => ({
   load: read,
   save: write,
-  async setAlignmentType(t) {
+  async setConfig(config) {
     const current = await read();
-    await write({...current, alignmentType: t});
+    await write({...current, config});
   },
   async setAnchorBox(box) {
     const current = await read();

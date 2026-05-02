@@ -1,22 +1,23 @@
-// Math + types for the alignment feature. Two orthogonal pieces of
-// state combine at apply time:
+// Two-point alignment math. The user picks a reference point on the
+// anchor box and a reference point on the target (lasso) box, plus
+// optional per-axis constraints and gaps. The translation lands the
+// target's reference point on the anchor's reference point (modulo
+// gaps and axis toggles).
 //
-//   alignmentType — one of 8 directions (4 corners + 4 sides). The
-//     user's preference for which edge / corner to align to. Always
-//     set; default 'left'. Persisted on its own.
+// Reference points are 9: the 4 corners, the 4 mid-sides, and the
+// geometric center. Each maps to a 2D point on a Rect; corners pick
+// edge values for both axes, side-mids pick edge for one axis and
+// box-center for the other, center picks both axes' centers.
 //
-//   anchorBox — the saved bounding box of a previous selection. The
-//     reference whose edge / corner the next selection's matching
-//     edge / corner gets translated to land on. Optional; absent on
-//     first install and after the user clears it. Persisted on its
-//     own.
-//
-// Changing alignmentType does NOT clear anchorBox: the box is a Rect,
-// so any alignmentType can be applied against it without re-saving.
+// Axis toggles: when constrainX is false, dx = 0 (target keeps its
+// X). Same for constrainY. Default is both ON, giving full 2D snap.
+// Gaps offset the anchor point before the shift is computed, so a
+// positive gapX pushes the target rightward of where it would
+// otherwise land.
 
 export type Rect = {left: number; top: number; right: number; bottom: number};
 
-export type AlignmentType =
+export type ReferencePoint =
   | 'top-left'
   | 'top'
   | 'top-right'
@@ -24,9 +25,10 @@ export type AlignmentType =
   | 'bottom-right'
   | 'bottom'
   | 'bottom-left'
-  | 'left';
+  | 'left'
+  | 'center';
 
-export const ALL_ALIGNMENT_TYPES: readonly AlignmentType[] = [
+export const ALL_REFERENCE_POINTS: readonly ReferencePoint[] = [
   'top-left',
   'top',
   'top-right',
@@ -35,44 +37,60 @@ export const ALL_ALIGNMENT_TYPES: readonly AlignmentType[] = [
   'bottom',
   'bottom-left',
   'left',
+  'center',
 ] as const;
 
-const constrainsX = (t: AlignmentType): boolean =>
-  t === 'top-left' || t === 'top-right' || t === 'bottom-right' || t === 'bottom-left' || t === 'right' || t === 'left';
-
-const constrainsY = (t: AlignmentType): boolean =>
-  t === 'top-left' || t === 'top-right' || t === 'bottom-right' || t === 'bottom-left' || t === 'top' || t === 'bottom';
-
-const pickXEdge = (b: Rect, t: AlignmentType): number => {
-  if (t === 'top-left' || t === 'bottom-left' || t === 'left') {
-    return b.left;
-  }
-  return b.right;
+export type AlignmentConfig = {
+  readonly anchorRef: ReferencePoint;
+  readonly targetRef: ReferencePoint;
+  readonly constrainX: boolean;
+  readonly constrainY: boolean;
+  readonly gapX: number;
+  readonly gapY: number;
 };
 
-const pickYEdge = (b: Rect, t: AlignmentType): number => {
-  if (t === 'top-left' || t === 'top-right' || t === 'top') {
-    return b.top;
-  }
-  return b.bottom;
+export const DEFAULT_ALIGNMENT_CONFIG: AlignmentConfig = {
+  anchorRef: 'left',
+  targetRef: 'left',
+  constrainX: true,
+  constrainY: true,
+  gapX: 0,
+  gapY: 0,
 };
 
-// Translation that, when applied to currentBbox, lands its edge /
-// corner (per alignmentType) on anchorBox's matching edge / corner.
-// Side types produce zero shift on the unconstrained axis.
+export type Point = {x: number; y: number};
+
+const isLeft = (r: ReferencePoint): boolean => r === 'top-left' || r === 'left' || r === 'bottom-left';
+const isRight = (r: ReferencePoint): boolean => r === 'top-right' || r === 'right' || r === 'bottom-right';
+const isTop = (r: ReferencePoint): boolean => r === 'top-left' || r === 'top' || r === 'top-right';
+const isBottom = (r: ReferencePoint): boolean => r === 'bottom-left' || r === 'bottom' || r === 'bottom-right';
+
+export const pointOnBox = (box: Rect, ref: ReferencePoint): Point => {
+  const cx = (box.left + box.right) / 2;
+  const cy = (box.top + box.bottom) / 2;
+  const x = isLeft(ref) ? box.left : isRight(ref) ? box.right : cx;
+  const y = isTop(ref) ? box.top : isBottom(ref) ? box.bottom : cy;
+  return {x, y};
+};
+
 export const computeAnchorShift = (
   anchorBox: Rect,
   currentBbox: Rect,
-  alignmentType: AlignmentType,
+  config: AlignmentConfig,
 ): {dx: number; dy: number} => {
-  const dx = constrainsX(alignmentType)
-    ? pickXEdge(anchorBox, alignmentType) - pickXEdge(currentBbox, alignmentType)
-    : 0;
-  const dy = constrainsY(alignmentType)
-    ? pickYEdge(anchorBox, alignmentType) - pickYEdge(currentBbox, alignmentType)
-    : 0;
+  const aP = pointOnBox(anchorBox, config.anchorRef);
+  const tP = pointOnBox(currentBbox, config.targetRef);
+  const dx = config.constrainX ? aP.x + config.gapX - tP.x : 0;
+  const dy = config.constrainY ? aP.y + config.gapY - tP.y : 0;
   return {dx, dy};
 };
+
+export const translateRect = (r: Rect, dx: number, dy: number): Rect => ({
+  left: r.left + dx,
+  top: r.top + dy,
+  right: r.right + dx,
+  bottom: r.bottom + dy,
+});
 
 export const isAnchorBox = (v: unknown): v is Rect => {
   if (!v || typeof v !== 'object') {
@@ -87,5 +105,20 @@ export const isAnchorBox = (v: unknown): v is Rect => {
   );
 };
 
-export const isAlignmentType = (v: unknown): v is AlignmentType =>
-  typeof v === 'string' && ALL_ALIGNMENT_TYPES.includes(v as AlignmentType);
+export const isReferencePoint = (v: unknown): v is ReferencePoint =>
+  typeof v === 'string' && ALL_REFERENCE_POINTS.includes(v as ReferencePoint);
+
+export const isAlignmentConfig = (v: unknown): v is AlignmentConfig => {
+  if (!v || typeof v !== 'object') {
+    return false;
+  }
+  const c = v as Partial<AlignmentConfig>;
+  return (
+    isReferencePoint(c.anchorRef) &&
+    isReferencePoint(c.targetRef) &&
+    typeof c.constrainX === 'boolean' &&
+    typeof c.constrainY === 'boolean' &&
+    typeof c.gapX === 'number' &&
+    typeof c.gapY === 'number'
+  );
+};
