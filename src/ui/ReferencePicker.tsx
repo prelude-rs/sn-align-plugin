@@ -84,12 +84,15 @@ const segmentLayoutsFor = (ref: Exclude<ReferencePoint, 'center'>, cellSize: num
 const SEGMENTS_BY_REF: Record<
   Exclude<ReferencePoint, 'center'>,
   readonly SegmentLayout[]
-> = ALL_REFERENCE_POINTS.reduce((acc, ref) => {
-  if (ref !== 'center') {
-    acc[ref] = segmentLayoutsFor(ref, dimensions.cellSize);
-  }
-  return acc;
-}, {} as Record<Exclude<ReferencePoint, 'center'>, readonly SegmentLayout[]>);
+> = ALL_REFERENCE_POINTS.reduce(
+  (acc, ref) => {
+    if (ref !== 'center') {
+      acc[ref] = segmentLayoutsFor(ref, dimensions.cellSize);
+    }
+    return acc;
+  },
+  {} as Record<Exclude<ReferencePoint, 'center'>, readonly SegmentLayout[]>,
+);
 
 const CENTER_DOT_LAYOUT: ViewStyle = {
   position: 'absolute',

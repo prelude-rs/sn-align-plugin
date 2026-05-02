@@ -5,10 +5,11 @@
 // so a single load returns the full state.
 //
 // Backend: in-memory only. The Supernote firmware doesn't expose a
-// key-value store through sn-plugin-lib, and the
-// @react-native-async-storage native module isn't included in the
-// plugin host. Sibling plugins use the same memory fallback for the
-// same reason.
+// key-value store through sn-plugin-lib, and no AsyncStorage native
+// module is included in the plugin host. Sibling plugins use the
+// same memory fallback. createKvBackedAnchorStorage stays exported
+// against any future firmware that bundles a real KV — it's
+// generic over the KvBackend interface defined below.
 //
 // The plugin's JS context survives across lasso taps and across note
 // swaps within a session, so memory is sufficient for in-session
