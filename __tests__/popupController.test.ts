@@ -8,13 +8,12 @@ const noop = () => {};
 const stubCallbacks = (): AlignmentPopupCallbacks => ({
   onSetAnchorRef: noop,
   onSetTargetRef: noop,
-  onToggleConstrainX: noop,
-  onToggleConstrainY: noop,
+  onToggleAlignX: noop,
+  onToggleAlignY: noop,
   onSetGapX: noop,
   onSetGapY: noop,
-  onSaveAnchor: noop,
+  onSetAnchor: noop,
   onApply: noop,
-  onClearAnchor: noop,
   onClose: noop,
 });
 

@@ -9,8 +9,8 @@
 // edge values for both axes, side-mids pick edge for one axis and
 // box-center for the other, center picks both axes' centers.
 //
-// Axis toggles: when constrainX is false, dx = 0 (target keeps its
-// X). Same for constrainY. Default is both ON, giving full 2D snap.
+// Axis toggles: when alignX is false, dx = 0 (target keeps its
+// X). Same for alignY. Default is both ON, giving full 2D snap.
 // Gaps offset the anchor point before the shift is computed, so a
 // positive gapX pushes the target rightward of where it would
 // otherwise land.
@@ -43,8 +43,8 @@ export const ALL_REFERENCE_POINTS: readonly ReferencePoint[] = [
 export type AlignmentConfig = {
   readonly anchorRef: ReferencePoint;
   readonly targetRef: ReferencePoint;
-  readonly constrainX: boolean;
-  readonly constrainY: boolean;
+  readonly alignX: boolean;
+  readonly alignY: boolean;
   readonly gapX: number;
   readonly gapY: number;
 };
@@ -52,8 +52,8 @@ export type AlignmentConfig = {
 export const DEFAULT_ALIGNMENT_CONFIG: AlignmentConfig = {
   anchorRef: 'left',
   targetRef: 'left',
-  constrainX: true,
-  constrainY: true,
+  alignX: true,
+  alignY: true,
   gapX: 0,
   gapY: 0,
 };
@@ -80,8 +80,8 @@ export const computeAnchorShift = (
 ): {dx: number; dy: number} => {
   const aP = pointOnBox(anchorBox, config.anchorRef);
   const tP = pointOnBox(currentBbox, config.targetRef);
-  const dx = config.constrainX ? aP.x + config.gapX - tP.x : 0;
-  const dy = config.constrainY ? aP.y + config.gapY - tP.y : 0;
+  const dx = config.alignX ? aP.x + config.gapX - tP.x : 0;
+  const dy = config.alignY ? aP.y + config.gapY - tP.y : 0;
   return {dx, dy};
 };
 
@@ -116,8 +116,8 @@ export const isAlignmentConfig = (v: unknown): v is AlignmentConfig => {
   return (
     isReferencePoint(c.anchorRef) &&
     isReferencePoint(c.targetRef) &&
-    typeof c.constrainX === 'boolean' &&
-    typeof c.constrainY === 'boolean' &&
+    typeof c.alignX === 'boolean' &&
+    typeof c.alignY === 'boolean' &&
     typeof c.gapX === 'number' &&
     typeof c.gapY === 'number'
   );

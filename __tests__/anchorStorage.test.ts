@@ -14,8 +14,8 @@ afterEach(() => __resetDefaultAnchorStorageForTest());
 const sampleConfig: AlignmentConfig = {
   anchorRef: 'top-right',
   targetRef: 'left',
-  constrainX: true,
-  constrainY: false,
+  alignX: true,
+  alignY: false,
   gapX: 30,
   gapY: 0,
 };
@@ -132,7 +132,7 @@ describe('KV-backed storage', () => {
       ANCHOR_STORAGE_KEY,
       JSON.stringify({
         version: 3,
-        config: {anchorRef: 'middle', targetRef: 'left', constrainX: true, constrainY: true, gapX: 0, gapY: 0},
+        config: {anchorRef: 'middle', targetRef: 'left', alignX: true, alignY: true, gapX: 0, gapY: 0},
         anchorBox: null,
       }),
     );

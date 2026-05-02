@@ -4,9 +4,9 @@ import {StyleSheet} from 'react-native';
 // steppers, status, and contextual action buttons. E-ink palette:
 // black ink, white background, thick borders.
 
-const CELL_SIZE = 90;
-const CELL_BORDER = 6;
-const RIM_WIDTH = 6;
+const CELL_SIZE = 72;
+const CELL_BORDER = 5;
+const RIM_WIDTH = 5;
 const FRAME_GAP = 0;
 
 export const dimensions = {

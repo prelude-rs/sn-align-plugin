@@ -106,17 +106,31 @@ describe('onLassoMain — popup-driven entry', () => {
 });
 
 describe('onLassoMain — popup callbacks', () => {
-  it('onSaveAnchor saves the lasso bbox as anchor and tears down', async () => {
+  it('onSetAnchor saves the lasso bbox as the anchor (whether one existed or not)', async () => {
     const lasso: Rect = {left: 10, top: 20, right: 30, bottom: 40};
     const {deps, storage, closePluginView, setLassoBoxState} = buildDeps(DEFAULT_ANCHOR_STATE, lasso);
     await onLassoMain(deps);
     const cbs = getCurrentState().callbacks!;
-    cbs.onSaveAnchor();
+    cbs.onSetAnchor();
     await new Promise(r => setTimeout(r, 0));
     expect((await storage.load()).anchorBox).toEqual(lasso);
     expect(closePluginView).toHaveBeenCalled();
     // Teardown releases the lasso state.
     expect(setLassoBoxState).toHaveBeenCalledWith(2);
+  });
+
+  it('onSetAnchor overwrites an existing anchor with the current lasso bbox', async () => {
+    const oldAnchor: AnchorState = {
+      config: DEFAULT_ALIGNMENT_CONFIG,
+      anchorBox: {left: 1, top: 1, right: 2, bottom: 2},
+    };
+    const newLasso: Rect = {left: 100, top: 200, right: 300, bottom: 400};
+    const {deps, storage} = buildDeps(oldAnchor, newLasso);
+    await onLassoMain(deps);
+    const cbs = getCurrentState().callbacks!;
+    cbs.onSetAnchor();
+    await new Promise(r => setTimeout(r, 0));
+    expect((await storage.load()).anchorBox).toEqual(newLasso);
   });
 
   it('onApply translates the lasso and calls setLassoBoxState(2)', async () => {
@@ -151,21 +165,6 @@ describe('onLassoMain — popup callbacks', () => {
     expect(logs.some(l => l.includes('apply rejected'))).toBe(true);
   });
 
-  it('onClearAnchor wipes the anchor and tears down', async () => {
-    const anchored: AnchorState = {
-      config: DEFAULT_ALIGNMENT_CONFIG,
-      anchorBox: {left: 100, top: 200, right: 300, bottom: 400},
-    };
-    const {deps, storage, closePluginView, setLassoBoxState} = buildDeps(anchored);
-    await onLassoMain(deps);
-    const cbs = getCurrentState().callbacks!;
-    cbs.onClearAnchor();
-    await new Promise(r => setTimeout(r, 0));
-    expect((await storage.load()).anchorBox).toBe(null);
-    expect(closePluginView).toHaveBeenCalled();
-    expect(setLassoBoxState).toHaveBeenCalledWith(2);
-  });
-
   it('onSetAnchorRef persists the new ref and updates popup state', async () => {
     const {deps, storage} = buildDeps(DEFAULT_ANCHOR_STATE);
     await onLassoMain(deps);
@@ -185,13 +184,13 @@ describe('onLassoMain — popup callbacks', () => {
     expect((await storage.load()).config.gapX).toBe(50);
   });
 
-  it('onToggleConstrainY flips the toggle', async () => {
+  it('onToggleAlignY flips the toggle', async () => {
     const {deps, storage} = buildDeps(DEFAULT_ANCHOR_STATE);
     await onLassoMain(deps);
     const cbs = getCurrentState().callbacks!;
-    cbs.onToggleConstrainY();
+    cbs.onToggleAlignY();
     await new Promise(r => setTimeout(r, 0));
-    expect((await storage.load()).config.constrainY).toBe(false);
+    expect((await storage.load()).config.alignY).toBe(false);
   });
 
   it('onClose tears down without mutating state', async () => {

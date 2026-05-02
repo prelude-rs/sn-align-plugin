@@ -18,12 +18,12 @@ const GRID: ReadonlyArray<ReadonlyArray<ReferencePoint>> = [
   ['bottom-left', 'bottom', 'bottom-right'],
 ];
 
-const ARM_LENGTH = 21;
-const ARM_THICKNESS = 5;
-const STEM_LENGTH = 26;
+const ARM_LENGTH = 17;
+const ARM_THICKNESS = 4;
+const STEM_LENGTH = 20;
 const HEAD_DEPTH = ARM_LENGTH * Math.SQRT1_2;
 const SQRT_HALF = Math.SQRT1_2;
-const CENTER_DOT_SIZE = 14;
+const CENTER_DOT_SIZE = 12;
 
 type Pt = {x: number; y: number};
 type Spec = {direction: Pt; armA: Pt; armB: Pt};

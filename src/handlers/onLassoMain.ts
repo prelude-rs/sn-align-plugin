@@ -145,16 +145,16 @@ export const onLassoMain = async (deps: LassoDeps): Promise<LassoOutcome> => {
         deps.logger.warn(`[align:lasso] setTargetRef failed: ${(e as Error).message}`),
       );
     },
-    onToggleConstrainX: () => {
+    onToggleAlignX: () => {
       deps.storage
         .load()
-        .then(s => setConfigPatch({constrainX: !s.config.constrainX}))
+        .then(s => setConfigPatch({alignX: !s.config.alignX}))
         .catch(e => deps.logger.warn(`[align:lasso] toggleX failed: ${(e as Error).message}`));
     },
-    onToggleConstrainY: () => {
+    onToggleAlignY: () => {
       deps.storage
         .load()
-        .then(s => setConfigPatch({constrainY: !s.config.constrainY}))
+        .then(s => setConfigPatch({alignY: !s.config.alignY}))
         .catch(e => deps.logger.warn(`[align:lasso] toggleY failed: ${(e as Error).message}`));
     },
     onSetGapX: (value: number) => {
@@ -167,19 +167,19 @@ export const onLassoMain = async (deps: LassoDeps): Promise<LassoOutcome> => {
         deps.logger.warn(`[align:lasso] setGapY failed: ${(e as Error).message}`),
       );
     },
-    onSaveAnchor: () => {
+    onSetAnchor: () => {
       (async () => {
         try {
           const rect = await tryGetLassoRect(deps);
           if (!rect) {
-            deps.logger.warn('[align:lasso] save anchor: no lasso selection');
+            deps.logger.warn('[align:lasso] set anchor: no lasso selection');
             await recomputeFlags(deps);
             return;
           }
           await deps.storage.setAnchorBox(rect);
-          deps.logger.log(`[align:lasso] saved anchor box=${JSON.stringify(rect)}`);
+          deps.logger.log(`[align:lasso] set anchor box=${JSON.stringify(rect)}`);
         } catch (e) {
-          deps.logger.error(`[align:lasso] save anchor crashed: ${(e as Error).message}`);
+          deps.logger.error(`[align:lasso] set anchor crashed: ${(e as Error).message}`);
         } finally {
           await teardown(deps);
         }
@@ -229,20 +229,6 @@ export const onLassoMain = async (deps: LassoDeps): Promise<LassoOutcome> => {
           // teardown calls setLassoBoxState(2) which commits the
           // pending resizeLassoRect (firmware semantics) and supports
           // native undo.
-          await teardown(deps);
-        }
-      })().catch(() => {
-        /* logged inside */
-      });
-    },
-    onClearAnchor: () => {
-      (async () => {
-        try {
-          await deps.storage.setAnchorBox(null);
-          deps.logger.log('[align:lasso] cleared anchor');
-        } catch (e) {
-          deps.logger.error(`[align:lasso] clear anchor crashed: ${(e as Error).message}`);
-        } finally {
           await teardown(deps);
         }
       })().catch(() => {

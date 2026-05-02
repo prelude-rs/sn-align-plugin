@@ -71,15 +71,15 @@ describe('computeAnchorShift', () => {
     });
   });
 
-  it('constrainX: false suppresses dx', () => {
-    expect(computeAnchorShift(anchor, sel, cfg({anchorRef: 'left', targetRef: 'left', constrainX: false}))).toEqual({
+  it('alignX: false suppresses dx', () => {
+    expect(computeAnchorShift(anchor, sel, cfg({anchorRef: 'left', targetRef: 'left', alignX: false}))).toEqual({
       dx: 0,
       dy: 300 - 625,
     });
   });
 
-  it('constrainY: false suppresses dy', () => {
-    expect(computeAnchorShift(anchor, sel, cfg({anchorRef: 'left', targetRef: 'left', constrainY: false}))).toEqual({
+  it('alignY: false suppresses dy', () => {
+    expect(computeAnchorShift(anchor, sel, cfg({anchorRef: 'left', targetRef: 'left', alignY: false}))).toEqual({
       dx: 100 - 500,
       dy: 0,
     });
@@ -88,7 +88,7 @@ describe('computeAnchorShift', () => {
   it('preserves current "free perpendicular axis" semantics — left edges aligned, Y untouched', () => {
     // Equivalent of the v0.1.0 "alignmentType: left" behavior.
     expect(
-      computeAnchorShift(anchor, sel, cfg({anchorRef: 'left', targetRef: 'left', constrainX: true, constrainY: false})),
+      computeAnchorShift(anchor, sel, cfg({anchorRef: 'left', targetRef: 'left', alignX: true, alignY: false})),
     ).toEqual({dx: 100 - 500, dy: 0});
   });
 
@@ -166,8 +166,8 @@ describe('isAlignmentConfig', () => {
       isAlignmentConfig({
         anchorRef: 'middle',
         targetRef: 'left',
-        constrainX: true,
-        constrainY: true,
+        alignX: true,
+        alignY: true,
         gapX: 0,
         gapY: 0,
       }),
@@ -179,8 +179,8 @@ describe('isAlignmentConfig', () => {
       isAlignmentConfig({
         anchorRef: 'left',
         targetRef: 'left',
-        constrainX: 'yes',
-        constrainY: true,
+        alignX: 'yes',
+        alignY: true,
         gapX: 0,
         gapY: 0,
       }),
@@ -192,8 +192,8 @@ describe('isAlignmentConfig', () => {
       isAlignmentConfig({
         anchorRef: 'left',
         targetRef: 'left',
-        constrainX: true,
-        constrainY: true,
+        alignX: true,
+        alignY: true,
         gapX: '10',
         gapY: 0,
       }),

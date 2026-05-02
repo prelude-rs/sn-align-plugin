@@ -8,13 +8,12 @@ import {t} from '../i18n/i18n';
 export type AlignmentPopupCallbacks = {
   onSetAnchorRef: (ref: ReferencePoint) => void;
   onSetTargetRef: (ref: ReferencePoint) => void;
-  onToggleConstrainX: () => void;
-  onToggleConstrainY: () => void;
+  onToggleAlignX: () => void;
+  onToggleAlignY: () => void;
   onSetGapX: (value: number) => void;
   onSetGapY: (value: number) => void;
-  onSaveAnchor: () => void;
+  onSetAnchor: () => void;
   onApply: () => void;
-  onClearAnchor: () => void;
   onClose: () => void;
 };
 
@@ -55,8 +54,10 @@ const GapStepper: React.FC<{label: string; value: number; onChange: (v: number) 
 );
 
 export const AlignmentPopup: React.FC<AlignmentPopupProps> = ({config, hasAnchor, outOfBounds, noLasso, callbacks}) => {
-  const applyDisabled = !hasAnchor || outOfBounds || noLasso;
-  const saveDisabled = noLasso;
+  const noAxis = !config.alignX && !config.alignY;
+  const applyDisabled = !hasAnchor || outOfBounds || noLasso || noAxis;
+  const setAnchorDisabled = noLasso;
+  const setAnchorLabel = hasAnchor ? t('action.setNewAnchor') : t('action.setAnchor');
 
   return (
     <View style={styles.backdrop}>
@@ -80,8 +81,8 @@ export const AlignmentPopup: React.FC<AlignmentPopupProps> = ({config, hasAnchor
         </View>
 
         <View style={styles.toggleRow}>
-          <Toggle label={t('axis.constrainX')} on={config.constrainX} onPress={callbacks.onToggleConstrainX} />
-          <Toggle label={t('axis.constrainY')} on={config.constrainY} onPress={callbacks.onToggleConstrainY} />
+          <Toggle label={t('axis.alignX')} on={config.alignX} onPress={callbacks.onToggleAlignX} />
+          <Toggle label={t('axis.alignY')} on={config.alignY} onPress={callbacks.onToggleAlignY} />
         </View>
 
         <GapStepper label={t('gap.x')} value={config.gapX} onChange={callbacks.onSetGapX} />
@@ -91,42 +92,41 @@ export const AlignmentPopup: React.FC<AlignmentPopupProps> = ({config, hasAnchor
           {hasAnchor ? t('status.savedAt') : t('status.noAnchor')}
         </Text>
 
-        {outOfBounds ? <Text style={styles.warning}>{t('warning.outOfBounds')}</Text> : null}
         {noLasso ? <Text style={styles.warning}>{t('warning.noLasso')}</Text> : null}
+        {!noLasso && noAxis ? <Text style={styles.warning}>{t('warning.noAxis')}</Text> : null}
+        {!noLasso && !noAxis && outOfBounds ? <Text style={styles.warning}>{t('warning.outOfBounds')}</Text> : null}
 
         <View style={styles.actionRow}>
           {hasAnchor ? (
-            <>
-              <Pressable
-                style={[styles.actionButton, styles.actionButtonPrimary, applyDisabled && styles.actionButtonDisabled]}
-                onPress={applyDisabled ? undefined : callbacks.onApply}>
-                <Text
-                  style={[
-                    styles.actionButtonText,
-                    !applyDisabled && styles.actionButtonTextPrimary,
-                    applyDisabled && styles.actionButtonTextDisabled,
-                  ]}>
-                  {t('action.apply')}
-                </Text>
-              </Pressable>
-              <Pressable style={styles.actionButton} onPress={callbacks.onClearAnchor}>
-                <Text style={styles.actionButtonText}>{t('action.clear')}</Text>
-              </Pressable>
-            </>
-          ) : (
             <Pressable
-              style={[styles.actionButton, styles.actionButtonPrimary, saveDisabled && styles.actionButtonDisabled]}
-              onPress={saveDisabled ? undefined : callbacks.onSaveAnchor}>
+              style={[styles.actionButton, styles.actionButtonPrimary, applyDisabled && styles.actionButtonDisabled]}
+              onPress={applyDisabled ? undefined : callbacks.onApply}>
               <Text
                 style={[
                   styles.actionButtonText,
-                  !saveDisabled && styles.actionButtonTextPrimary,
-                  saveDisabled && styles.actionButtonTextDisabled,
+                  !applyDisabled && styles.actionButtonTextPrimary,
+                  applyDisabled && styles.actionButtonTextDisabled,
                 ]}>
-                {t('action.save')}
+                {t('action.apply')}
               </Text>
             </Pressable>
-          )}
+          ) : null}
+          <Pressable
+            style={[
+              styles.actionButton,
+              !hasAnchor && styles.actionButtonPrimary,
+              setAnchorDisabled && styles.actionButtonDisabled,
+            ]}
+            onPress={setAnchorDisabled ? undefined : callbacks.onSetAnchor}>
+            <Text
+              style={[
+                styles.actionButtonText,
+                !hasAnchor && !setAnchorDisabled && styles.actionButtonTextPrimary,
+                setAnchorDisabled && styles.actionButtonTextDisabled,
+              ]}>
+              {setAnchorLabel}
+            </Text>
+          </Pressable>
         </View>
       </View>
     </View>
