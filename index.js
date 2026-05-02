@@ -7,10 +7,7 @@ import App from './App';
 import {name as appName} from './app.json';
 import {PluginCommAPI, PluginManager} from 'sn-plugin-lib';
 
-import {
-  registerPageButton,
-  PAGE_SET_ALIGNMENT_BUTTON_ID,
-} from './src/buttons/registerPageButton';
+import {registerPageButton, PAGE_SET_ALIGNMENT_BUTTON_ID} from './src/buttons/registerPageButton';
 import {
   registerLassoButtons,
   LASSO_SET_ANCHOR_BUTTON_ID,
@@ -78,10 +75,7 @@ const onButtonPress = event => {
     onPageToolbar(pageDeps).catch(e => {
       logger.error(`[align:page] dispatch crashed: ${e.message}`);
     });
-  } else if (
-    event.id === LASSO_SET_ANCHOR_BUTTON_ID ||
-    event.id === LASSO_APPLY_ALIGNMENT_BUTTON_ID
-  ) {
+  } else if (event.id === LASSO_SET_ANCHOR_BUTTON_ID || event.id === LASSO_APPLY_ALIGNMENT_BUTTON_ID) {
     onLassoMain(lassoDeps).catch(e => {
       logger.error(`[align:lasso] dispatch crashed: ${e.message}`);
     });

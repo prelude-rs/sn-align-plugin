@@ -6,10 +6,7 @@
 // `setButtonState` picks which one is currently visible+tappable.
 
 import type {PluginManagerLike} from './buttonCommon';
-import {
-  LASSO_APPLY_ALIGNMENT_BUTTON_ID,
-  LASSO_SET_ANCHOR_BUTTON_ID,
-} from './registerLassoButton';
+import {LASSO_APPLY_ALIGNMENT_BUTTON_ID, LASSO_SET_ANCHOR_BUTTON_ID} from './registerLassoButton';
 
 export type LassoMode = 'set-anchor' | 'apply-alignment';
 
@@ -18,24 +15,15 @@ export type LassoToggleDeps = {
   logger: {log: (msg: string) => void; warn: (msg: string) => void};
 };
 
-const safeSetButtonState = async (
-  deps: LassoToggleDeps,
-  id: number,
-  enable: boolean,
-): Promise<void> => {
+const safeSetButtonState = async (deps: LassoToggleDeps, id: number, enable: boolean): Promise<void> => {
   try {
     await deps.pluginManager.setButtonState(id, enable);
   } catch (e) {
-    deps.logger.warn(
-      `[align:toggle] setButtonState(${id},${enable}) threw: ${(e as Error).message}`,
-    );
+    deps.logger.warn(`[align:toggle] setButtonState(${id},${enable}) threw: ${(e as Error).message}`);
   }
 };
 
-export const setLassoMode = async (
-  deps: LassoToggleDeps,
-  mode: LassoMode,
-): Promise<void> => {
+export const setLassoMode = async (deps: LassoToggleDeps, mode: LassoMode): Promise<void> => {
   const setAnchorEnabled = mode === 'set-anchor';
   // Disable the outgoing button before enabling the incoming one so
   // the user never sees both visible at once during the transition.

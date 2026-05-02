@@ -16,12 +16,7 @@
 // persistence. State is lost only when the host process itself is
 // killed (device restart, plugin reinstall).
 
-import {
-  isAlignmentType,
-  isAnchorBox,
-  type AlignmentType,
-  type AnchorBox,
-} from '../core/anchor';
+import {isAlignmentType, isAnchorBox, type AlignmentType, type AnchorBox} from '../core/anchor';
 
 export const ANCHOR_STORAGE_KEY = '@snalign_anchor_state';
 
@@ -57,23 +52,27 @@ type KvBackend = {
 };
 
 const parseEnvelope = (raw: string | null): AnchorState => {
-  if (!raw) {return DEFAULT_ANCHOR_STATE;}
+  if (!raw) {
+    return DEFAULT_ANCHOR_STATE;
+  }
   let data: unknown;
   try {
     data = JSON.parse(raw);
   } catch {
     return DEFAULT_ANCHOR_STATE;
   }
-  if (!data || typeof data !== 'object') {return DEFAULT_ANCHOR_STATE;}
+  if (!data || typeof data !== 'object') {
+    return DEFAULT_ANCHOR_STATE;
+  }
   const env = data as Partial<AnchorEnvelope>;
-  if (env.version !== SCHEMA_VERSION) {return DEFAULT_ANCHOR_STATE;}
-  if (!isAlignmentType(env.alignmentType)) {return DEFAULT_ANCHOR_STATE;}
+  if (env.version !== SCHEMA_VERSION) {
+    return DEFAULT_ANCHOR_STATE;
+  }
+  if (!isAlignmentType(env.alignmentType)) {
+    return DEFAULT_ANCHOR_STATE;
+  }
   const anchorBox =
-    env.anchorBox === null || env.anchorBox === undefined
-      ? null
-      : isAnchorBox(env.anchorBox)
-        ? env.anchorBox
-        : null;
+    env.anchorBox === null || env.anchorBox === undefined ? null : isAnchorBox(env.anchorBox) ? env.anchorBox : null;
   return {alignmentType: env.alignmentType, anchorBox};
 };
 
@@ -102,9 +101,7 @@ const buildStorage = (
   },
 });
 
-export const createKvBackedAnchorStorage = (
-  backend: KvBackend,
-): AnchorStorage =>
+export const createKvBackedAnchorStorage = (backend: KvBackend): AnchorStorage =>
   buildStorage(
     async () => {
       try {
@@ -124,9 +121,7 @@ export const createKvBackedAnchorStorage = (
     },
   );
 
-export const createMemoryAnchorStorage = (
-  initial: AnchorState = DEFAULT_ANCHOR_STATE,
-): AnchorStorage => {
+export const createMemoryAnchorStorage = (initial: AnchorState = DEFAULT_ANCHOR_STATE): AnchorStorage => {
   let state: AnchorState = initial;
   return buildStorage(
     async () => state,

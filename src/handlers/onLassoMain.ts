@@ -37,53 +37,35 @@ export type LassoDeps = {
   onAnchorSaved?: () => void;
 };
 
-export type LassoOutcome =
-  | 'ok-saved'
-  | 'ok-applied'
-  | 'busy'
-  | 'noop'
-  | 'failed';
+export type LassoOutcome = 'ok-saved' | 'ok-applied' | 'busy' | 'noop' | 'failed';
 
 export const onLassoMain = async (deps: LassoDeps): Promise<LassoOutcome> => {
   if (!tryAcquire()) {
-    deps.logger.warn(
-      '[align:lasso] pipeline already running — ignoring re-entry',
-    );
+    deps.logger.warn('[align:lasso] pipeline already running — ignoring re-entry');
     await safeClosePluginView(deps.comm, deps.logger);
     return 'busy';
   }
 
   try {
     const state = await deps.storage.load();
-    const lassoRect = unwrap(
-      await deps.comm.getLassoRect(),
-      'getLassoRect',
-    );
+    const lassoRect = unwrap(await deps.comm.getLassoRect(), 'getLassoRect');
 
     if (state.anchorBox === null) {
       // Set Anchor branch.
       await deps.storage.setAnchorBox(lassoRect);
-      deps.logger.log(
-        `[align:lasso] saved anchor box=${JSON.stringify(lassoRect)}`,
-      );
+      deps.logger.log(`[align:lasso] saved anchor box=${JSON.stringify(lassoRect)}`);
       if (deps.onAnchorSaved) {
         try {
           deps.onAnchorSaved();
         } catch (e) {
-          deps.logger.warn(
-            `[align:lasso] onAnchorSaved threw: ${(e as Error).message}`,
-          );
+          deps.logger.warn(`[align:lasso] onAnchorSaved threw: ${(e as Error).message}`);
         }
       }
       return 'ok-saved';
     }
 
     // Apply Alignment branch.
-    const {dx, dy} = computeAnchorShift(
-      state.anchorBox,
-      lassoRect,
-      state.alignmentType,
-    );
+    const {dx, dy} = computeAnchorShift(state.anchorBox, lassoRect, state.alignmentType);
     if (dx === 0 && dy === 0) {
       deps.logger.log('[align:lasso] selection already aligned with anchor');
       return 'noop';
@@ -97,14 +79,14 @@ export const onLassoMain = async (deps: LassoDeps): Promise<LassoOutcome> => {
     };
 
     deps.logger.log(
-      `[align:lasso] resize lasso (dx=${dx}, dy=${dy}, type=${state.alignmentType}) ${JSON.stringify(lassoRect)} -> ${JSON.stringify(newRect)}`,
+      `[align:lasso] resize lasso (dx=${dx}, dy=${dy}, type=${state.alignmentType}) ${JSON.stringify(
+        lassoRect,
+      )} -> ${JSON.stringify(newRect)}`,
     );
 
     const res = await deps.comm.resizeLassoRect(newRect);
     if (!res || !res.success) {
-      deps.logger.warn(
-        `[align:lasso] resizeLassoRect failed: ${res?.error?.message ?? 'no error'}`,
-      );
+      deps.logger.warn(`[align:lasso] resizeLassoRect failed: ${res?.error?.message ?? 'no error'}`);
       return 'failed';
     }
 
@@ -120,9 +102,7 @@ export const onLassoMain = async (deps: LassoDeps): Promise<LassoOutcome> => {
     try {
       await deps.comm.setLassoBoxState(LASSO_BOX_STATE_RELEASED);
     } catch (e) {
-      deps.logger.warn(
-        `[align:lasso] setLassoBoxState(2) threw: ${(e as Error).message}`,
-      );
+      deps.logger.warn(`[align:lasso] setLassoBoxState(2) threw: ${(e as Error).message}`);
     }
     await safeClosePluginView(deps.comm, deps.logger);
   }

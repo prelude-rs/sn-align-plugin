@@ -41,17 +41,12 @@ const teardown = async (deps: PageDeps): Promise<void> => {
   await safeClosePluginView(deps.comm, deps.logger);
 };
 
-const runSetAlignmentType = async (
-  deps: PageDeps,
-  alignmentType: AlignmentType,
-): Promise<void> => {
+const runSetAlignmentType = async (deps: PageDeps, alignmentType: AlignmentType): Promise<void> => {
   try {
     await deps.storage.setAlignmentType(alignmentType);
     deps.logger.log(`[align:page] alignmentType=${alignmentType}`);
   } catch (e) {
-    deps.logger.error(
-      `[align:page] setAlignmentType crashed: ${(e as Error).message}`,
-    );
+    deps.logger.error(`[align:page] setAlignmentType crashed: ${(e as Error).message}`);
   }
 };
 
@@ -63,23 +58,17 @@ const runClearAnchor = async (deps: PageDeps): Promise<void> => {
       try {
         deps.onAnchorCleared();
       } catch (e) {
-        deps.logger.warn(
-          `[align:page] onAnchorCleared threw: ${(e as Error).message}`,
-        );
+        deps.logger.warn(`[align:page] onAnchorCleared threw: ${(e as Error).message}`);
       }
     }
   } catch (e) {
-    deps.logger.error(
-      `[align:page] clearAnchor crashed: ${(e as Error).message}`,
-    );
+    deps.logger.error(`[align:page] clearAnchor crashed: ${(e as Error).message}`);
   }
 };
 
 export const onPageToolbar = async (deps: PageDeps): Promise<PageOutcome> => {
   if (!tryAcquire()) {
-    deps.logger.warn(
-      '[align:page] pipeline already running — ignoring re-entry',
-    );
+    deps.logger.warn('[align:page] pipeline already running — ignoring re-entry');
     await safeClosePluginView(deps.comm, deps.logger);
     return 'busy';
   }
@@ -88,9 +77,7 @@ export const onPageToolbar = async (deps: PageDeps): Promise<PageOutcome> => {
   try {
     state = await deps.storage.load();
   } catch (e) {
-    deps.logger.error(
-      `[align:page] storage.load crashed: ${(e as Error).message}`,
-    );
+    deps.logger.error(`[align:page] storage.load crashed: ${(e as Error).message}`);
     release();
     await safeClosePluginView(deps.comm, deps.logger);
     return 'failed';

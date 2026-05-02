@@ -1,15 +1,11 @@
 import {onLassoMain, type LassoDeps} from '../src/handlers/onLassoMain';
-import {
-  createMemoryAnchorStorage,
-  DEFAULT_ANCHOR_STATE,
-  type AnchorState,
-} from '../src/storage/anchorStorage';
+import {createMemoryAnchorStorage, DEFAULT_ANCHOR_STATE, type AnchorState} from '../src/storage/anchorStorage';
 import type {Rect} from '../src/core/anchor';
 import {release} from '../src/core/reentrancyGuard';
 
 afterEach(() => release());
 
-const ok = <T,>(result: T) => ({success: true, result, error: undefined});
+const ok = <T>(result: T) => ({success: true, result});
 
 const stubLogger = () => {
   const logs: string[] = [];
@@ -23,10 +19,7 @@ const stubLogger = () => {
   };
 };
 
-const buildDeps = (
-  initial: AnchorState,
-  lassoRect: Rect = {left: 500, top: 600, right: 600, bottom: 650},
-) => {
+const buildDeps = (initial: AnchorState, lassoRect: Rect = {left: 500, top: 600, right: 600, bottom: 650}) => {
   const getLassoRect = jest.fn(async () => ok(lassoRect));
   const resizeLassoRect = jest.fn(async () => ok(true));
   const setLassoBoxState = jest.fn(async () => ok(true));
@@ -55,10 +48,7 @@ describe('onLassoMain (dual-mode)', () => {
   describe('Set Anchor branch (no anchor saved)', () => {
     it('saves the lasso bbox as the new anchorBox', async () => {
       const lassoRect: Rect = {left: 10, top: 20, right: 30, bottom: 40};
-      const {deps, storage, onAnchorSaved} = buildDeps(
-        DEFAULT_ANCHOR_STATE,
-        lassoRect,
-      );
+      const {deps, storage, onAnchorSaved} = buildDeps(DEFAULT_ANCHOR_STATE, lassoRect);
       expect(await onLassoMain(deps)).toBe('ok-saved');
       expect(await storage.load()).toEqual({
         alignmentType: DEFAULT_ANCHOR_STATE.alignmentType,
@@ -74,9 +64,7 @@ describe('onLassoMain (dual-mode)', () => {
     });
 
     it('always calls setLassoBoxState(2) and closePluginView in finally', async () => {
-      const {deps, setLassoBoxState, closePluginView} = buildDeps(
-        DEFAULT_ANCHOR_STATE,
-      );
+      const {deps, setLassoBoxState, closePluginView} = buildDeps(DEFAULT_ANCHOR_STATE);
       await onLassoMain(deps);
       expect(setLassoBoxState).toHaveBeenCalledWith(2);
       expect(closePluginView).toHaveBeenCalled();
@@ -119,7 +107,6 @@ describe('onLassoMain (dual-mode)', () => {
       const {deps} = buildDeps(anchored);
       deps.comm.resizeLassoRect = jest.fn(async () => ({
         success: false,
-        result: undefined,
         error: {code: 1, message: 'rejected'},
       }));
       expect(await onLassoMain(deps)).toBe('failed');
