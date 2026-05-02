@@ -93,9 +93,11 @@ export const AlignmentPopup: React.FC<AlignmentPopupProps> = ({config, hasAnchor
 
         {!hasAnchor ? <Text style={[styles.status, styles.statusEmpty]}>{t('status.noAnchor')}</Text> : null}
 
-        {noLasso ? <Text style={styles.warning}>{t('warning.noLasso')}</Text> : null}
-        {!noLasso && noAxis ? <Text style={styles.warning}>{t('warning.noAxis')}</Text> : null}
-        {!noLasso && !noAxis && outOfBounds ? <Text style={styles.warning}>{t('warning.outOfBounds')}</Text> : null}
+        {/* Always rendered so the popup doesn't shift when a warning toggles
+            on/off. Non-breaking space holds the line height when empty. */}
+        <Text style={styles.warning}>
+          {noLasso ? t('warning.noLasso') : noAxis ? t('warning.noAxis') : outOfBounds ? t('warning.outOfBounds') : ' '}
+        </Text>
 
         <View style={styles.actionRow}>
           {hasAnchor ? (
