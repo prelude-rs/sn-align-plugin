@@ -17,6 +17,7 @@
 // killed (device restart, plugin reinstall).
 
 import {isAlignmentType, isAnchorBox, type AlignmentType, type Rect} from '../core/anchor';
+import type {Logger} from '../sdk/types';
 
 export const ANCHOR_STORAGE_KEY = '@snalign_anchor_state';
 
@@ -101,14 +102,14 @@ const buildStorage = (
   },
 });
 
-export const createKvBackedAnchorStorage = (backend: KvBackend): AnchorStorage =>
+export const createKvBackedAnchorStorage = (backend: KvBackend, logger?: Pick<Logger, 'error'>): AnchorStorage =>
   buildStorage(
     async () => {
       try {
         const raw = await backend.getItem(ANCHOR_STORAGE_KEY);
         return parseEnvelope(raw);
       } catch (e) {
-        console.error('[AnchorStorage] load failed:', e);
+        logger?.error(`[align:storage] load failed: ${(e as Error).message}`);
         return DEFAULT_ANCHOR_STATE;
       }
     },
@@ -116,7 +117,7 @@ export const createKvBackedAnchorStorage = (backend: KvBackend): AnchorStorage =
       try {
         await backend.setItem(ANCHOR_STORAGE_KEY, serialiseEnvelope(state));
       } catch (e) {
-        console.error('[AnchorStorage] save failed:', e);
+        logger?.error(`[align:storage] save failed: ${(e as Error).message}`);
       }
     },
   );
