@@ -9,10 +9,7 @@ export type ClosablePluginView = {
 
 export type WarnLogger = {warn: (msg: string) => void};
 
-export const safeClosePluginView = async (
-  view: ClosablePluginView,
-  logger: WarnLogger,
-): Promise<void> => {
+export const safeClosePluginView = async (view: ClosablePluginView, logger: WarnLogger): Promise<void> => {
   try {
     await view.closePluginView();
   } catch (e) {

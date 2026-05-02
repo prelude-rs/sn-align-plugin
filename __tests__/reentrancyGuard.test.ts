@@ -1,8 +1,4 @@
-import {
-  isBusy,
-  release,
-  tryAcquire,
-} from '../src/core/reentrancyGuard';
+import {isBusy, release, tryAcquire} from '../src/core/reentrancyGuard';
 
 afterEach(() => release());
 

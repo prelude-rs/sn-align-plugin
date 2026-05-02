@@ -24,10 +24,7 @@ import {
   type ButtonListener,
   type PluginManagerLike,
 } from './buttonCommon';
-import {
-  localizedApplyAlignmentName,
-  localizedSetAnchorName,
-} from '../i18n/i18n';
+import {localizedApplyAlignmentName, localizedSetAnchorName} from '../i18n/i18n';
 
 const BUTTON_TYPE_LASSO_TOOLBAR = 2;
 const APP_TYPE_NOTE = 'NOTE';
@@ -51,45 +48,28 @@ const registerOne = async (
   pluginManager: PluginManagerLike,
   cfg: {id: number; name: string; icon: string},
 ): Promise<void> => {
-  await pluginManager.registerButton(
-    BUTTON_TYPE_LASSO_TOOLBAR,
-    [APP_TYPE_NOTE],
-    {
-      id: cfg.id,
-      name: cfg.name,
-      icon: cfg.icon,
-      enable: false,
-      editDataTypes: EDIT_DATA_TYPES_ALL,
-      showType: 0,
-    },
-  );
+  await pluginManager.registerButton(BUTTON_TYPE_LASSO_TOOLBAR, [APP_TYPE_NOTE], {
+    id: cfg.id,
+    name: cfg.name,
+    icon: cfg.icon,
+    enable: false,
+    editDataTypes: EDIT_DATA_TYPES_ALL,
+    showType: 0,
+  });
 };
 
-const safeSetButtonState = async (
-  deps: RegisterLassoDeps,
-  id: number,
-  enable: boolean,
-): Promise<void> => {
+const safeSetButtonState = async (deps: RegisterLassoDeps, id: number, enable: boolean): Promise<void> => {
   try {
     await deps.pluginManager.setButtonState(id, enable);
   } catch (e) {
-    deps.logger.warn(
-      `[align:button] setButtonState(${id},${enable}) threw: ${(e as Error).message}`,
-    );
+    deps.logger.warn(`[align:button] setButtonState(${id},${enable}) threw: ${(e as Error).message}`);
   }
 };
 
-export const registerLassoButtons = async (
-  deps: RegisterLassoDeps,
-): Promise<void> => {
+export const registerLassoButtons = async (deps: RegisterLassoDeps): Promise<void> => {
   const [iconUri, iconAnchoredUri] = await Promise.all([
     resolveIconUri(deps.pluginManager, deps.logger, 'lasso', ICON_FILENAME),
-    resolveIconUri(
-      deps.pluginManager,
-      deps.logger,
-      'lasso',
-      ICON_ANCHORED_FILENAME,
-    ),
+    resolveIconUri(deps.pluginManager, deps.logger, 'lasso', ICON_ANCHORED_FILENAME),
   ]);
 
   // Register both buttons first (both disabled), THEN toggle the
@@ -108,27 +88,18 @@ export const registerLassoButtons = async (
     icon: iconAnchoredUri,
   });
 
-  await safeSetButtonState(
-    deps,
-    LASSO_SET_ANCHOR_BUTTON_ID,
-    !deps.initialAnchored,
-  );
-  await safeSetButtonState(
-    deps,
-    LASSO_APPLY_ALIGNMENT_BUTTON_ID,
-    deps.initialAnchored,
-  );
+  await safeSetButtonState(deps, LASSO_SET_ANCHOR_BUTTON_ID, !deps.initialAnchored);
+  await safeSetButtonState(deps, LASSO_APPLY_ALIGNMENT_BUTTON_ID, deps.initialAnchored);
 
   deps.logger.log(
-    `[align:button] registered LASSO buttons (set=${LASSO_SET_ANCHOR_BUTTON_ID} enabled=${!deps.initialAnchored}, apply=${LASSO_APPLY_ALIGNMENT_BUTTON_ID} enabled=${deps.initialAnchored})`,
+    `[align:button] registered LASSO buttons (set=${LASSO_SET_ANCHOR_BUTTON_ID} enabled=${!deps.initialAnchored}, apply=${LASSO_APPLY_ALIGNMENT_BUTTON_ID} enabled=${
+      deps.initialAnchored
+    })`,
   );
 
   const listener: ButtonListener = {
     onButtonPress: event => {
-      if (
-        event.id === LASSO_SET_ANCHOR_BUTTON_ID ||
-        event.id === LASSO_APPLY_ALIGNMENT_BUTTON_ID
-      ) {
+      if (event.id === LASSO_SET_ANCHOR_BUTTON_ID || event.id === LASSO_APPLY_ALIGNMENT_BUTTON_ID) {
         deps.onPress(event);
       }
     },

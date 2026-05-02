@@ -33,7 +33,7 @@ const GRID: ReadonlyArray<ReadonlyArray<Cell | CenterCell>> = [
 
 const isCenter = (c: Cell | CenterCell): c is CenterCell => 'center' in c;
 
-const ARM_LENGTH = 21;       // 30% smaller than the prior chevron
+const ARM_LENGTH = 21; // 30% smaller than the prior chevron
 const ARM_THICKNESS = 5;
 const STEM_LENGTH = 26;
 const HEAD_DEPTH = ARM_LENGTH * Math.SQRT1_2; // L * cos(45°)
@@ -123,10 +123,7 @@ const arrowLines = (type: AlignmentType, cellSize: number): Line[] => {
   ];
 };
 
-const Arrow: React.FC<{type: AlignmentType; selected: boolean}> = ({
-  type,
-  selected,
-}) => {
+const Arrow: React.FC<{type: AlignmentType; selected: boolean}> = ({type, selected}) => {
   const stroke = selected ? '#ffffff' : '#000000';
   const lines = arrowLines(type, dimensions.cellSize);
   return (
@@ -158,12 +155,7 @@ const Arrow: React.FC<{type: AlignmentType; selected: boolean}> = ({
   );
 };
 
-export const AnchorPanel: React.FC<AnchorPanelProps> = ({
-  alignmentType,
-  hasAnchor,
-  onPick,
-  onClear,
-}) => (
+export const AnchorPanel: React.FC<AnchorPanelProps> = ({alignmentType, hasAnchor, onPick, onClear}) => (
   <View>
     <View style={styles.markGridWrap}>
       <View style={styles.markGrid}>
@@ -171,24 +163,13 @@ export const AnchorPanel: React.FC<AnchorPanelProps> = ({
           <View key={ri} style={styles.markRow}>
             {row.map(cell => {
               if (isCenter(cell)) {
-                return (
-                  <View
-                    key="center"
-                    style={[
-                      styles.markCellBase,
-                      {backgroundColor: '#ffffff'},
-                    ]}
-                  />
-                );
+                return <View key="center" style={[styles.markCellBase, {backgroundColor: '#ffffff'}]} />;
               }
               const selected = alignmentType === cell.type;
               return (
                 <Pressable
                   key={cell.type}
-                  style={[
-                    styles.markCellBase,
-                    {backgroundColor: selected ? '#000000' : '#ffffff'},
-                  ]}
+                  style={[styles.markCellBase, {backgroundColor: selected ? '#000000' : '#ffffff'}]}
                   onPress={() => onPick(cell.type)}>
                   <Arrow type={cell.type} selected={selected} />
                 </Pressable>
@@ -200,9 +181,7 @@ export const AnchorPanel: React.FC<AnchorPanelProps> = ({
     </View>
 
     <Text style={[styles.status, !hasAnchor && styles.statusEmpty]}>
-      {hasAnchor
-        ? `${t('mark.savedAt')}: ${alignmentType}`
-        : t('mark.noneYet')}
+      {hasAnchor ? `${t('mark.savedAt')}: ${alignmentType}` : t('mark.noneYet')}
     </Text>
 
     {hasAnchor ? (
