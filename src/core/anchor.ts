@@ -37,8 +37,6 @@ export const ALL_ALIGNMENT_TYPES: readonly AlignmentType[] = [
   'left',
 ] as const;
 
-export type AnchorBox = Rect;
-
 const constrainsX = (t: AlignmentType): boolean =>
   t === 'top-left' || t === 'top-right' || t === 'bottom-right' || t === 'bottom-left' || t === 'right' || t === 'left';
 
@@ -63,7 +61,7 @@ const pickYEdge = (b: Rect, t: AlignmentType): number => {
 // corner (per alignmentType) on anchorBox's matching edge / corner.
 // Side types produce zero shift on the unconstrained axis.
 export const computeAnchorShift = (
-  anchorBox: AnchorBox,
+  anchorBox: Rect,
   currentBbox: Rect,
   alignmentType: AlignmentType,
 ): {dx: number; dy: number} => {
@@ -76,7 +74,7 @@ export const computeAnchorShift = (
   return {dx, dy};
 };
 
-export const isAnchorBox = (v: unknown): v is AnchorBox => {
+export const isAnchorBox = (v: unknown): v is Rect => {
   if (!v || typeof v !== 'object') {
     return false;
   }

@@ -16,19 +16,19 @@
 // persistence. State is lost only when the host process itself is
 // killed (device restart, plugin reinstall).
 
-import {isAlignmentType, isAnchorBox, type AlignmentType, type AnchorBox} from '../core/anchor';
+import {isAlignmentType, isAnchorBox, type AlignmentType, type Rect} from '../core/anchor';
 
 export const ANCHOR_STORAGE_KEY = '@snalign_anchor_state';
 
 export type AnchorState = {
   readonly alignmentType: AlignmentType;
-  readonly anchorBox: AnchorBox | null;
+  readonly anchorBox: Rect | null;
 };
 
 export type AnchorEnvelope = {
   readonly version: 2;
   readonly alignmentType: AlignmentType;
-  readonly anchorBox: AnchorBox | null;
+  readonly anchorBox: Rect | null;
 };
 
 const SCHEMA_VERSION = 2 as const;
@@ -42,7 +42,7 @@ export interface AnchorStorage {
   load(): Promise<AnchorState>;
   save(state: AnchorState): Promise<void>;
   setAlignmentType(t: AlignmentType): Promise<void>;
-  setAnchorBox(box: AnchorBox | null): Promise<void>;
+  setAnchorBox(box: Rect | null): Promise<void>;
 }
 
 type KvBackend = {

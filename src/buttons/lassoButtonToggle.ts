@@ -5,34 +5,25 @@
 // approach is the proven fallback: both buttons register up-front,
 // `setButtonState` picks which one is currently visible+tappable.
 
-import type {PluginManagerLike} from './buttonCommon';
+import {safeSetButtonState, type PluginManagerLike} from './buttonCommon';
 import {LASSO_APPLY_ALIGNMENT_BUTTON_ID, LASSO_SET_ANCHOR_BUTTON_ID} from './registerLassoButton';
+import type {Logger} from '../sdk/types';
 
 export type LassoMode = 'set-anchor' | 'apply-alignment';
 
 export type LassoToggleDeps = {
   pluginManager: PluginManagerLike;
-  logger: {log: (msg: string) => void; warn: (msg: string) => void};
+  logger: Pick<Logger, 'log' | 'warn'>;
 };
 
-const safeSetButtonState = async (deps: LassoToggleDeps, id: number, enable: boolean): Promise<void> => {
-  try {
-    await deps.pluginManager.setButtonState(id, enable);
-  } catch (e) {
-    deps.logger.warn(`[align:toggle] setButtonState(${id},${enable}) threw: ${(e as Error).message}`);
-  }
-};
+const TAG = 'align:toggle';
 
 export const setLassoMode = async (deps: LassoToggleDeps, mode: LassoMode): Promise<void> => {
-  const setAnchorEnabled = mode === 'set-anchor';
+  const disableId = mode === 'set-anchor' ? LASSO_APPLY_ALIGNMENT_BUTTON_ID : LASSO_SET_ANCHOR_BUTTON_ID;
+  const enableId = mode === 'set-anchor' ? LASSO_SET_ANCHOR_BUTTON_ID : LASSO_APPLY_ALIGNMENT_BUTTON_ID;
   // Disable the outgoing button before enabling the incoming one so
   // the user never sees both visible at once during the transition.
-  if (setAnchorEnabled) {
-    await safeSetButtonState(deps, LASSO_APPLY_ALIGNMENT_BUTTON_ID, false);
-    await safeSetButtonState(deps, LASSO_SET_ANCHOR_BUTTON_ID, true);
-  } else {
-    await safeSetButtonState(deps, LASSO_SET_ANCHOR_BUTTON_ID, false);
-    await safeSetButtonState(deps, LASSO_APPLY_ALIGNMENT_BUTTON_ID, true);
-  }
-  deps.logger.log(`[align:toggle] mode=${mode}`);
+  await safeSetButtonState(deps.pluginManager, deps.logger, TAG, disableId, false);
+  await safeSetButtonState(deps.pluginManager, deps.logger, TAG, enableId, true);
+  deps.logger.log(`[${TAG}] mode=${mode}`);
 };

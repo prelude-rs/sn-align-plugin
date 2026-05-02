@@ -8,6 +8,7 @@
 
 import {resolveIconUri, type ButtonEvent, type ButtonListener, type PluginManagerLike} from './buttonCommon';
 import {localizedSetAlignmentName} from '../i18n/i18n';
+import type {Logger} from '../sdk/types';
 
 const BUTTON_TYPE_TOOLBAR = 1;
 const APP_TYPE_NOTE = 'NOTE';
@@ -17,7 +18,7 @@ export const PAGE_SET_ALIGNMENT_BUTTON_ID = 200;
 export type RegisterPageDeps = {
   pluginManager: PluginManagerLike;
   onPress: (event: ButtonEvent) => void;
-  logger: {log: (msg: string) => void; warn: (msg: string) => void};
+  logger: Pick<Logger, 'log' | 'warn'>;
 };
 
 export const registerPageButton = async (deps: RegisterPageDeps): Promise<void> => {

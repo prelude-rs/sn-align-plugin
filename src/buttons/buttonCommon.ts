@@ -1,5 +1,7 @@
 // Shared types for button registrations.
 
+import type {Logger} from '../sdk/types';
+
 export type ButtonEvent = {id: number};
 
 export type ButtonListener = {
@@ -19,7 +21,7 @@ export const ICON_ANCHORED_FILENAME = 'icon-anchored.png';
 
 export const resolveIconUri = async (
   pluginManager: Pick<PluginManagerLike, 'getPluginDirPath'>,
-  logger: {warn: (msg: string) => void},
+  logger: Pick<Logger, 'warn'>,
   tag: string,
   filename: string = ICON_FILENAME,
 ): Promise<string> => {
@@ -35,4 +37,20 @@ export const resolveIconUri = async (
     logger.warn(`[${tag}:icon] no plugin dir available — button will render without icon`);
   }
   return iconUri;
+};
+
+// Best-effort setButtonState. The firmware can throw mid-toggle; we
+// log and move on rather than abort the surrounding flow.
+export const safeSetButtonState = async (
+  pluginManager: Pick<PluginManagerLike, 'setButtonState'>,
+  logger: Pick<Logger, 'warn'>,
+  tag: string,
+  id: number,
+  enable: boolean,
+): Promise<void> => {
+  try {
+    await pluginManager.setButtonState(id, enable);
+  } catch (e) {
+    logger.warn(`[${tag}] setButtonState(${id},${enable}) threw: ${(e as Error).message}`);
+  }
 };
