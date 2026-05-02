@@ -118,22 +118,23 @@ export const styles = StyleSheet.create({
     color: '#000000',
   },
 
-  // Gap stepper row — 3-column layout so the stepper itself is
-  // centered in the dialog regardless of label width. Label takes the
-  // left column (right-aligned), stepper sits in the middle, an
-  // empty cell mirrors the label width on the right.
+  // Gap stepper row — fixed-width label and spacer cells flank the
+  // stepper so the stepper is geometrically centered in the dialog
+  // (label cell width === spacer cell width). justifyContent:'center'
+  // floats the whole label+stepper+spacer group in the row.
   gapRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 8,
   },
   gapLabelCell: {
-    flex: 1,
+    width: 90,
     alignItems: 'flex-end',
     paddingRight: 12,
   },
   gapSpacerCell: {
-    flex: 1,
+    width: 90,
   },
   gapLabel: {
     fontSize: 16,
