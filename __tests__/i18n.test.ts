@@ -31,7 +31,6 @@ const ALL_IDS: StringId[] = [
   'warning.noLasso',
   'warning.noAxis',
   'status.noAnchor',
-  'status.savedAt',
   'popup.close',
 ];
 

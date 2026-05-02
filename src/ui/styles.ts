@@ -23,8 +23,8 @@ export const styles = StyleSheet.create({
     padding: 24,
   },
   card: {
-    minWidth: 480,
-    maxWidth: 560,
+    minWidth: 540,
+    maxWidth: 600,
     backgroundColor: '#ffffff',
     borderRadius: 8,
     borderWidth: 2,
@@ -118,13 +118,22 @@ export const styles = StyleSheet.create({
     color: '#000000',
   },
 
-  // Gap stepper row — label + stepper centered as a single unit.
+  // Gap stepper row — 3-column layout so the stepper itself is
+  // centered in the dialog regardless of label width. Label takes the
+  // left column (right-aligned), stepper sits in the middle, an
+  // empty cell mirrors the label width on the right.
   gapRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 12,
     marginBottom: 8,
+  },
+  gapLabelCell: {
+    flex: 1,
+    alignItems: 'flex-end',
+    paddingRight: 12,
+  },
+  gapSpacerCell: {
+    flex: 1,
   },
   gapLabel: {
     fontSize: 16,

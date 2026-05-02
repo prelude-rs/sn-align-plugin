@@ -28,7 +28,6 @@ export type StringId =
   | 'warning.noLasso'
   | 'warning.noAxis'
   | 'status.noAnchor'
-  | 'status.savedAt'
   | 'popup.close';
 
 const STRINGS: Record<string, Partial<Record<StringId, string>>> = {
@@ -56,7 +55,6 @@ const STRINGS: Record<string, Partial<Record<StringId, string>>> = {
     'warning.noLasso': 'Draw a lasso selection first',
     'warning.noAxis': 'Select at least one axis to align',
     'status.noAnchor': 'No anchor saved yet',
-    'status.savedAt': 'Anchored',
     'popup.close': 'Close',
   },
   zh_CN: {
@@ -83,7 +81,6 @@ const STRINGS: Record<string, Partial<Record<StringId, string>>> = {
     'warning.noLasso': '请先框选内容',
     'warning.noAxis': '至少选择一个对齐轴',
     'status.noAnchor': '尚未保存锚点',
-    'status.savedAt': '已锚定',
     'popup.close': '关闭',
   },
   zh_TW: {
@@ -110,7 +107,6 @@ const STRINGS: Record<string, Partial<Record<StringId, string>>> = {
     'warning.noLasso': '請先框選內容',
     'warning.noAxis': '至少選擇一個對齊軸',
     'status.noAnchor': '尚未儲存錨點',
-    'status.savedAt': '已錨定',
     'popup.close': '關閉',
   },
   ja: {
@@ -137,7 +133,6 @@ const STRINGS: Record<string, Partial<Record<StringId, string>>> = {
     'warning.noLasso': '先に投げ縄選択してください',
     'warning.noAxis': '少なくとも1軸を選択してください',
     'status.noAnchor': 'アンカー未保存',
-    'status.savedAt': '記録済',
     'popup.close': '閉じる',
   },
   th: {
@@ -164,7 +159,6 @@ const STRINGS: Record<string, Partial<Record<StringId, string>>> = {
     'warning.noLasso': 'กรุณาเลือกพื้นที่ก่อน',
     'warning.noAxis': 'เลือกอย่างน้อยหนึ่งแกน',
     'status.noAnchor': 'ยังไม่ได้บันทึกจุดยึด',
-    'status.savedAt': 'บันทึกแล้ว',
     'popup.close': 'ปิด',
   },
   nl: {
@@ -191,7 +185,6 @@ const STRINGS: Record<string, Partial<Record<StringId, string>>> = {
     'warning.noLasso': 'Maak eerst een lasso-selectie',
     'warning.noAxis': 'Selecteer ten minste één as',
     'status.noAnchor': 'Nog geen anker opgeslagen',
-    'status.savedAt': 'Verankerd',
     'popup.close': 'Sluiten',
   },
   de: {
@@ -218,7 +211,6 @@ const STRINGS: Record<string, Partial<Record<StringId, string>>> = {
     'warning.noLasso': 'Erst eine Lasso-Auswahl zeichnen',
     'warning.noAxis': 'Mindestens eine Achse auswählen',
     'status.noAnchor': 'Kein Anker gespeichert',
-    'status.savedAt': 'Verankert',
     'popup.close': 'Schließen',
   },
 };

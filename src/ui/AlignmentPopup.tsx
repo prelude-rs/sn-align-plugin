@@ -40,7 +40,9 @@ const GapStepper: React.FC<{label: string; value: number; onChange: (v: number) 
   onChange,
 }) => (
   <View style={styles.gapRow}>
-    <Text style={styles.gapLabel}>{label}</Text>
+    <View style={styles.gapLabelCell}>
+      <Text style={styles.gapLabel}>{label}</Text>
+    </View>
     <View style={styles.gapStepper}>
       <Pressable style={styles.stepperButton} onPress={() => onChange(value - GAP_STEP)}>
         <Text style={styles.stepperButtonText}>−</Text>
@@ -50,6 +52,7 @@ const GapStepper: React.FC<{label: string; value: number; onChange: (v: number) 
         <Text style={styles.stepperButtonText}>+</Text>
       </Pressable>
     </View>
+    <View style={styles.gapSpacerCell} />
   </View>
 );
 
@@ -88,9 +91,7 @@ export const AlignmentPopup: React.FC<AlignmentPopupProps> = ({config, hasAnchor
         <GapStepper label={t('gap.x')} value={config.gapX} onChange={callbacks.onSetGapX} />
         <GapStepper label={t('gap.y')} value={config.gapY} onChange={callbacks.onSetGapY} />
 
-        <Text style={[styles.status, !hasAnchor && styles.statusEmpty]}>
-          {hasAnchor ? t('status.savedAt') : t('status.noAnchor')}
-        </Text>
+        {!hasAnchor ? <Text style={[styles.status, styles.statusEmpty]}>{t('status.noAnchor')}</Text> : null}
 
         {noLasso ? <Text style={styles.warning}>{t('warning.noLasso')}</Text> : null}
         {!noLasso && noAxis ? <Text style={styles.warning}>{t('warning.noAxis')}</Text> : null}
