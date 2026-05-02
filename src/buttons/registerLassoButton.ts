@@ -37,8 +37,8 @@ export const registerLassoButton = async (deps: RegisterLassoDeps): Promise<void
     editDataTypes: EDIT_DATA_TYPES_ALL,
     showType: 1,
     regionType: 1,
-    regionWidth: 880,
-    regionHeight: 880,
+    regionWidth: 600,
+    regionHeight: 800,
   });
 
   deps.logger.log(`[${TAG}] registered LASSO Alignment button (id=${LASSO_ALIGNMENT_BUTTON_ID})`);

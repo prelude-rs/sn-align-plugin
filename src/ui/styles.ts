@@ -4,9 +4,9 @@ import {StyleSheet} from 'react-native';
 // steppers, status, and contextual action buttons. E-ink palette:
 // black ink, white background, thick borders.
 
-const CELL_SIZE = 72;
-const CELL_BORDER = 5;
-const RIM_WIDTH = 5;
+const CELL_SIZE = 64;
+const CELL_BORDER = 4;
+const RIM_WIDTH = 4;
 const FRAME_GAP = 0;
 
 export const dimensions = {
@@ -23,14 +23,14 @@ export const styles = StyleSheet.create({
     padding: 24,
   },
   card: {
-    minWidth: 720,
-    maxWidth: 880,
+    minWidth: 480,
+    maxWidth: 560,
     backgroundColor: '#ffffff',
     borderRadius: 8,
     borderWidth: 2,
     borderColor: '#000000',
-    paddingHorizontal: 24,
-    paddingVertical: 20,
+    paddingHorizontal: 18,
+    paddingVertical: 16,
   },
 
   header: {
@@ -118,18 +118,18 @@ export const styles = StyleSheet.create({
     color: '#000000',
   },
 
-  // Gap stepper row.
+  // Gap stepper row — label + stepper centered as a single unit.
   gapRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
+    gap: 12,
     marginBottom: 8,
   },
   gapLabel: {
     fontSize: 16,
     fontWeight: '600',
     color: '#000000',
-    width: 90,
   },
   gapStepper: {
     flexDirection: 'row',
