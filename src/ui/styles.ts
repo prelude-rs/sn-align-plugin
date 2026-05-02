@@ -181,6 +181,7 @@ export const styles = StyleSheet.create({
   warning: {
     marginTop: 8,
     fontSize: 15,
+    fontWeight: '700',
     color: '#000000',
     fontStyle: 'italic',
     textAlign: 'center',
