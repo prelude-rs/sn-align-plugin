@@ -37,7 +37,6 @@ export const setLassoMode = async (
   mode: LassoMode,
 ): Promise<void> => {
   const setAnchorEnabled = mode === 'set-anchor';
-  const applyEnabled = mode === 'apply-alignment';
   // Disable the outgoing button before enabling the incoming one so
   // the user never sees both visible at once during the transition.
   if (setAnchorEnabled) {
