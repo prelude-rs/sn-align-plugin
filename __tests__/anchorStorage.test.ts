@@ -97,10 +97,7 @@ describe('KV-backed storage', () => {
 
   it('returns DEFAULT_ANCHOR_STATE on wrong schema version', async () => {
     const {map, backend} = fakeKv();
-    map.set(
-      ANCHOR_STORAGE_KEY,
-      JSON.stringify({version: 1, mark: {alignmentType: 'top-left', x: 1, y: 2}}),
-    );
+    map.set(ANCHOR_STORAGE_KEY, JSON.stringify({version: 1, mark: {alignmentType: 'top-left', x: 1, y: 2}}));
     const s = createKvBackedAnchorStorage(backend);
     expect(await s.load()).toEqual(DEFAULT_ANCHOR_STATE);
   });
@@ -121,10 +118,7 @@ describe('KV-backed storage', () => {
 
   it('rejects unknown alignmentType, falls back to DEFAULT_ANCHOR_STATE', async () => {
     const {map, backend} = fakeKv();
-    map.set(
-      ANCHOR_STORAGE_KEY,
-      JSON.stringify({version: 2, alignmentType: 'middle', anchorBox: null}),
-    );
+    map.set(ANCHOR_STORAGE_KEY, JSON.stringify({version: 2, alignmentType: 'middle', anchorBox: null}));
     const s = createKvBackedAnchorStorage(backend);
     expect(await s.load()).toEqual(DEFAULT_ANCHOR_STATE);
   });

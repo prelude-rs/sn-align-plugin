@@ -20,22 +20,25 @@ import {
   ICON_ANCHORED_FILENAME,
   ICON_FILENAME,
   resolveIconUri,
+  safeSetButtonState,
   type ButtonEvent,
   type ButtonListener,
   type PluginManagerLike,
 } from './buttonCommon';
-import {
-  localizedApplyAlignmentName,
-  localizedSetAnchorName,
-} from '../i18n/i18n';
+import {localizedApplyAlignmentName, localizedSetAnchorName} from '../i18n/i18n';
+import type {Logger} from '../sdk/types';
 
 const BUTTON_TYPE_LASSO_TOOLBAR = 2;
 const APP_TYPE_NOTE = 'NOTE';
-// 0=stroke, 1=title, 2=image, 3=text-box, 4=link. resizeLassoRect
-// is a pure visual translation of the lasso selection — it doesn't
-// care what's inside — so the button is meaningful for every lasso
-// content type.
-const EDIT_DATA_TYPES_ALL = [0, 1, 2, 3, 4];
+// 0=stroke, 1=title, 2=image, 3=text-box, 4=link, 5=geometry.
+// The firmware filters lasso buttons by the editDataTypes present in
+// the current selection (PluginButtonAdapter logs `pluginType: [3, 5]`
+// for a text-box + geometry selection). Geometry (5) was missing and
+// the Apply Alignment button greyed for any selection containing a
+// shape — verified on A5X2 firmware. resizeLassoRect is a pure visual
+// translation, so the button is meaningful for every lasso content
+// type; register for all six.
+const EDIT_DATA_TYPES_ALL = [0, 1, 2, 3, 4, 5];
 
 export const LASSO_SET_ANCHOR_BUTTON_ID = 201;
 export const LASSO_APPLY_ALIGNMENT_BUTTON_ID = 202;
@@ -44,52 +47,29 @@ export type RegisterLassoDeps = {
   pluginManager: PluginManagerLike;
   onPress: (event: ButtonEvent) => void;
   initialAnchored: boolean;
-  logger: {log: (msg: string) => void; warn: (msg: string) => void};
+  logger: Pick<Logger, 'log' | 'warn'>;
 };
+
+const TAG = 'align:button';
 
 const registerOne = async (
   pluginManager: PluginManagerLike,
   cfg: {id: number; name: string; icon: string},
 ): Promise<void> => {
-  await pluginManager.registerButton(
-    BUTTON_TYPE_LASSO_TOOLBAR,
-    [APP_TYPE_NOTE],
-    {
-      id: cfg.id,
-      name: cfg.name,
-      icon: cfg.icon,
-      enable: false,
-      editDataTypes: EDIT_DATA_TYPES_ALL,
-      showType: 0,
-    },
-  );
+  await pluginManager.registerButton(BUTTON_TYPE_LASSO_TOOLBAR, [APP_TYPE_NOTE], {
+    id: cfg.id,
+    name: cfg.name,
+    icon: cfg.icon,
+    enable: false,
+    editDataTypes: EDIT_DATA_TYPES_ALL,
+    showType: 0,
+  });
 };
 
-const safeSetButtonState = async (
-  deps: RegisterLassoDeps,
-  id: number,
-  enable: boolean,
-): Promise<void> => {
-  try {
-    await deps.pluginManager.setButtonState(id, enable);
-  } catch (e) {
-    deps.logger.warn(
-      `[align:button] setButtonState(${id},${enable}) threw: ${(e as Error).message}`,
-    );
-  }
-};
-
-export const registerLassoButtons = async (
-  deps: RegisterLassoDeps,
-): Promise<void> => {
+export const registerLassoButtons = async (deps: RegisterLassoDeps): Promise<void> => {
   const [iconUri, iconAnchoredUri] = await Promise.all([
     resolveIconUri(deps.pluginManager, deps.logger, 'lasso', ICON_FILENAME),
-    resolveIconUri(
-      deps.pluginManager,
-      deps.logger,
-      'lasso',
-      ICON_ANCHORED_FILENAME,
-    ),
+    resolveIconUri(deps.pluginManager, deps.logger, 'lasso', ICON_ANCHORED_FILENAME),
   ]);
 
   // Register both buttons first (both disabled), THEN toggle the
@@ -108,27 +88,18 @@ export const registerLassoButtons = async (
     icon: iconAnchoredUri,
   });
 
-  await safeSetButtonState(
-    deps,
-    LASSO_SET_ANCHOR_BUTTON_ID,
-    !deps.initialAnchored,
-  );
-  await safeSetButtonState(
-    deps,
-    LASSO_APPLY_ALIGNMENT_BUTTON_ID,
-    deps.initialAnchored,
-  );
+  await safeSetButtonState(deps.pluginManager, deps.logger, TAG, LASSO_SET_ANCHOR_BUTTON_ID, !deps.initialAnchored);
+  await safeSetButtonState(deps.pluginManager, deps.logger, TAG, LASSO_APPLY_ALIGNMENT_BUTTON_ID, deps.initialAnchored);
 
   deps.logger.log(
-    `[align:button] registered LASSO buttons (set=${LASSO_SET_ANCHOR_BUTTON_ID} enabled=${!deps.initialAnchored}, apply=${LASSO_APPLY_ALIGNMENT_BUTTON_ID} enabled=${deps.initialAnchored})`,
+    `[${TAG}] registered LASSO buttons (set=${LASSO_SET_ANCHOR_BUTTON_ID} enabled=${!deps.initialAnchored}, apply=${LASSO_APPLY_ALIGNMENT_BUTTON_ID} enabled=${
+      deps.initialAnchored
+    })`,
   );
 
   const listener: ButtonListener = {
     onButtonPress: event => {
-      if (
-        event.id === LASSO_SET_ANCHOR_BUTTON_ID ||
-        event.id === LASSO_APPLY_ALIGNMENT_BUTTON_ID
-      ) {
+      if (event.id === LASSO_SET_ANCHOR_BUTTON_ID || event.id === LASSO_APPLY_ALIGNMENT_BUTTON_ID) {
         deps.onPress(event);
       }
     },

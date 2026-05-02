@@ -43,11 +43,7 @@ const emit = (next: PopupState): void => {
   listeners.forEach(l => l(next));
 };
 
-export const showPopup = (
-  alignmentType: AlignmentType,
-  hasAnchor: boolean,
-  callbacks: PopupCallbacks,
-): void => {
+export const showPopup = (alignmentType: AlignmentType, hasAnchor: boolean, callbacks: PopupCallbacks): void => {
   emit({active: true, alignmentType, hasAnchor, callbacks});
 };
 

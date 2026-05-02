@@ -173,10 +173,16 @@ const FALLBACK_LOCALE = 'en';
 
 const normaliseLocale = (raw: string): string => {
   const swap = raw.replace('-', '_');
-  if (STRINGS[swap]) {return swap;}
-  const lang = swap.split('_')[0];
-  if (STRINGS[lang]) {return lang;}
-  if (swap.startsWith('zh') && STRINGS.zh_TW) {return 'zh_TW';}
+  if (STRINGS[swap]) {
+    return swap;
+  }
+  const lang = swap.split('_')[0] ?? FALLBACK_LOCALE;
+  if (STRINGS[lang]) {
+    return lang;
+  }
+  if (swap.startsWith('zh') && STRINGS.zh_TW) {
+    return 'zh_TW';
+  }
   return FALLBACK_LOCALE;
 };
 
@@ -184,7 +190,9 @@ export const detectLocale = (): string => {
   try {
     if (typeof Intl !== 'undefined' && Intl.Collator) {
       const resolved = new Intl.Collator().resolvedOptions().locale;
-      if (resolved) {return normaliseLocale(resolved);}
+      if (resolved) {
+        return normaliseLocale(resolved);
+      }
     }
   } catch {
     // fall through
@@ -196,17 +204,12 @@ const LOCALE = detectLocale();
 
 export const t = (id: StringId, locale: string = LOCALE): string => {
   const resolved = normaliseLocale(locale);
-  return (
-    STRINGS[resolved]?.[id] ?? STRINGS[FALLBACK_LOCALE][id] ?? String(id)
-  );
+  return STRINGS[resolved]?.[id] ?? STRINGS[FALLBACK_LOCALE]?.[id] ?? String(id);
 };
 
-export const localizedSetAlignmentName = (): string =>
-  JSON.stringify(PAGE_SET_ALIGNMENT_NAME);
-export const localizedSetAnchorName = (): string =>
-  JSON.stringify(LASSO_SET_ANCHOR_NAME);
-export const localizedApplyAlignmentName = (): string =>
-  JSON.stringify(LASSO_APPLY_ALIGNMENT_NAME);
+export const localizedSetAlignmentName = (): string => JSON.stringify(PAGE_SET_ALIGNMENT_NAME);
+export const localizedSetAnchorName = (): string => JSON.stringify(LASSO_SET_ANCHOR_NAME);
+export const localizedApplyAlignmentName = (): string => JSON.stringify(LASSO_APPLY_ALIGNMENT_NAME);
 export const localizedPluginName = (): string => JSON.stringify(PLUGIN_NAME);
 
 export const __testing__ = {

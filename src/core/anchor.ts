@@ -37,31 +37,23 @@ export const ALL_ALIGNMENT_TYPES: readonly AlignmentType[] = [
   'left',
 ] as const;
 
-export type AnchorBox = Rect;
-
 const constrainsX = (t: AlignmentType): boolean =>
-  t === 'top-left' ||
-  t === 'top-right' ||
-  t === 'bottom-right' ||
-  t === 'bottom-left' ||
-  t === 'right' ||
-  t === 'left';
+  t === 'top-left' || t === 'top-right' || t === 'bottom-right' || t === 'bottom-left' || t === 'right' || t === 'left';
 
 const constrainsY = (t: AlignmentType): boolean =>
-  t === 'top-left' ||
-  t === 'top-right' ||
-  t === 'bottom-right' ||
-  t === 'bottom-left' ||
-  t === 'top' ||
-  t === 'bottom';
+  t === 'top-left' || t === 'top-right' || t === 'bottom-right' || t === 'bottom-left' || t === 'top' || t === 'bottom';
 
 const pickXEdge = (b: Rect, t: AlignmentType): number => {
-  if (t === 'top-left' || t === 'bottom-left' || t === 'left') {return b.left;}
+  if (t === 'top-left' || t === 'bottom-left' || t === 'left') {
+    return b.left;
+  }
   return b.right;
 };
 
 const pickYEdge = (b: Rect, t: AlignmentType): number => {
-  if (t === 'top-left' || t === 'top-right' || t === 'top') {return b.top;}
+  if (t === 'top-left' || t === 'top-right' || t === 'top') {
+    return b.top;
+  }
   return b.bottom;
 };
 
@@ -69,7 +61,7 @@ const pickYEdge = (b: Rect, t: AlignmentType): number => {
 // corner (per alignmentType) on anchorBox's matching edge / corner.
 // Side types produce zero shift on the unconstrained axis.
 export const computeAnchorShift = (
-  anchorBox: AnchorBox,
+  anchorBox: Rect,
   currentBbox: Rect,
   alignmentType: AlignmentType,
 ): {dx: number; dy: number} => {
@@ -82,8 +74,10 @@ export const computeAnchorShift = (
   return {dx, dy};
 };
 
-export const isAnchorBox = (v: unknown): v is AnchorBox => {
-  if (!v || typeof v !== 'object') {return false;}
+export const isAnchorBox = (v: unknown): v is Rect => {
+  if (!v || typeof v !== 'object') {
+    return false;
+  }
   const r = v as Partial<Rect>;
   return (
     typeof r.left === 'number' &&
@@ -94,5 +88,4 @@ export const isAnchorBox = (v: unknown): v is AnchorBox => {
 };
 
 export const isAlignmentType = (v: unknown): v is AlignmentType =>
-  typeof v === 'string' &&
-  ALL_ALIGNMENT_TYPES.includes(v as AlignmentType);
+  typeof v === 'string' && ALL_ALIGNMENT_TYPES.includes(v as AlignmentType);

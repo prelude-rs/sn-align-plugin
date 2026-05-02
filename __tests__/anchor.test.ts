@@ -1,13 +1,6 @@
-import {
-  ALL_ALIGNMENT_TYPES,
-  computeAnchorShift,
-  isAlignmentType,
-  isAnchorBox,
-  type AnchorBox,
-  type Rect,
-} from '../src/core/anchor';
+import {ALL_ALIGNMENT_TYPES, computeAnchorShift, isAlignmentType, isAnchorBox, type Rect} from '../src/core/anchor';
 
-const anchor: AnchorBox = {left: 100, top: 200, right: 300, bottom: 400};
+const anchor: Rect = {left: 100, top: 200, right: 300, bottom: 400};
 // Selection bbox is a 100×50 rect we move around.
 const sel: Rect = {left: 500, top: 600, right: 600, bottom: 650};
 

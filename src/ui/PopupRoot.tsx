@@ -4,11 +4,7 @@ import {PluginManager} from 'sn-plugin-lib';
 import {AnchorPanel} from './AnchorPanel';
 import {styles} from './styles';
 import {t} from '../i18n/i18n';
-import {
-  getCurrentState,
-  subscribe,
-  type PopupState,
-} from './popupController';
+import {getCurrentState, subscribe, type PopupState} from './popupController';
 
 // Single-purpose dialog: pick or clear the alignment mark. Apply
 // happens via the separate toolbar button (showType:0, no popup).
