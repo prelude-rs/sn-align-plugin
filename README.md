@@ -1,97 +1,60 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# SnAlign
 
-# Getting Started
+A Supernote plugin to align lasso selections to a saved reference. Pick where on a selection you'd like to anchor (any of the 8 edges/corners), save the anchor, then apply that alignment to other selections — text, strokes, images, or any mix.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+## Install
 
-## Step 1: Start Metro
+1. Download the latest `SnAlign.snplg` from the [Releases](../../releases) page.
+2. Copy it to your Supernote (over USB or your usual sideload route).
+3. On the device, open the plugin manager and install the file.
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+Two new buttons appear on a Note:
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+- **Set Alignment** — on the page side toolbar (always visible).
+- **Set Anchor** / **Apply Alignment** — on the lasso toolbar (the one that pops up after you draw a lasso). Only one of these shows at a time.
 
-```sh
-# Using npm
-npm start
+## How to use
 
-# OR using Yarn
-yarn start
-```
+Two settings combine to translate a selection: a **direction** (which edge or corner to align) and an **anchor** (the reference rectangle to align to). They're independent — change one without disturbing the other.
 
-## Step 2: Build and run your app
+### Set the alignment direction
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+1. Tap **Set Alignment** on the page toolbar.
+2. Pick a cell in the 3×3 grid:
+   - corners → align that corner of your selection to the same corner of the anchor
+   - sides → align that edge only (the other axis is unchanged)
+3. The selected direction is highlighted; close the dialog.
 
-### Android
+### Save an anchor
 
-```sh
-# Using npm
-npm run android
+1. Lasso anything on the page (strokes, text boxes, images, or a mix).
+2. Tap **Set Anchor** on the lasso toolbar.
 
-# OR using Yarn
-yarn android
-```
+The bounding box of that lasso is saved as the anchor.
 
-### iOS
+### Apply
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+1. Lasso another piece of content.
+2. Tap **Apply Alignment**.
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+The selection slides so its chosen edge or corner lands on the same edge or corner of the saved anchor. The move is undoable with the device's standard undo.
 
-```sh
-bundle install
-```
+### Clear the anchor
 
-Then, and every time you update your native dependencies, run:
+Open the **Set Alignment** dialog and tap **Clear Anchor**. The direction stays; only the anchor is removed. The lasso button flips back to **Set Anchor**.
 
-```sh
-bundle exec pod install
-```
+## What works
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+- Strokes
+- Text boxes
+- Images
+- Mixed selections
 
-```sh
-# Using npm
-npm run ios
+## Limits
 
-# OR using Yarn
-yarn ios
-```
+- The anchor is in-memory only — it's lost when the plugin host restarts (e.g. after a device reboot or a plugin reinstall). Survives navigating between notes.
+- Verified on the Supernote A5X2; other models likely work but aren't tested.
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+## License
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
-
-## Step 3: Modify your app
-
-Now that you have successfully run the app, let's make changes!
-
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
-
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
-
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+MIT — see [LICENSE](LICENSE) if present in the repo.
