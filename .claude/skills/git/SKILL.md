@@ -89,9 +89,44 @@ chore: update dependencies
 7. Wait for CI + review
 8. Merge via GitHub
 
+## Releasing — `/git tag main`
+
+When the user asks to tag/release main (`/git tag main`, `/git release`, etc.), trigger the manual release workflow but ONLY if the version isn't already tagged.
+
+```bash
+# 1. Sync main and read the version that would be tagged.
+git fetch origin main --tags
+VERSION=$(git show origin/main:package.json | python3 -c "import sys,json; print(json.load(sys.stdin)['version'])")
+TAG="v$VERSION"
+
+# 2. Bail if the tag already exists locally OR on the remote.
+if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null \
+   || git ls-remote --tags origin "refs/tags/$TAG" | grep -q "$TAG"; then
+  echo "Tag $TAG already exists. Bump package.json on dev → main first."
+  exit 1
+fi
+
+# 3. Confirm the dev → main release-train PR has actually merged
+#    (refuse if main hasn't picked up the version bump commit yet).
+echo "Will tag $TAG from $(git rev-parse --short origin/main) on origin/main"
+
+# 4. Trigger the workflow.
+gh workflow run release.yml --ref main
+
+# 5. Surface the run URL so the user can watch it.
+sleep 2
+gh run list --workflow=release.yml --limit 1
+```
+
+Notes:
+- The release workflow is tag-only (does NOT push commits to main). It reads the version from `package.json` on main and pushes the annotated `vX.Y.Z` tag.
+- If the version override is needed (one-off renumber), pass it: `gh workflow run release.yml --ref main -f version=X.Y.Z` — only do this when the user explicitly asks.
+- After triggering, optionally `gh run watch` the latest run id.
+
 ## Output
 
 1. Branch name (validated against convention)
 2. Commit messages (validated against prefix convention)
 3. Pre-PR checklist results
 4. PR creation command or link
+5. For `/git tag main`: tag pre-existence check result + workflow run URL
