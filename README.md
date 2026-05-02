@@ -11,7 +11,7 @@ Use it to:
 
 ## Demo
 
-<video src="https://github.com/prelude-rs/sn-align-plugin/raw/main/assets/demo/AlignTool.mp4" controls></video>
+<video src="https://github.com/user-attachments/assets/aa04f657-f133-4e54-a6e3-5e26ea0066e6" controls></video>
 
 ## Install
 
