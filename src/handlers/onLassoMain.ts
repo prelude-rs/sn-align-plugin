@@ -1,27 +1,45 @@
-// Lasso-toolbar button handler. Single dual-mode button:
+// Single popup-driven lasso handler. The button (showType:1) opens
+// the popup; all interactions (picker, toggles, gaps, save, apply,
+// clear) flow back through callbacks.
 //
-//   No anchor saved → save the current lasso bbox as anchorBox.
-//   Anchor saved   → apply alignment by translating the lasso so its
-//                    edge / corner (per stored alignmentType) lands
-//                    on the anchor's matching edge / corner. Uses
-//                    the firmware's native resizeLassoRect path,
-//                    which commits on setLassoBoxState(2) and is
-//                    undoable.
+// Lasso box state lifecycle (per SDK: 0=Show, 1=Hide, 2=Completely
+// remove):
+//   - On entry, after capturing the initial lasso bbox, we call
+//     setLassoBoxState(1) to HIDE the lasso menu/toolbar. This keeps
+//     the lasso selection alive (so resizeLassoRect can still operate
+//     on it during Apply) while removing the visual pollution of
+//     stacking our popup on top of the menu.
+//   - On every teardown path (Set Anchor / Apply / Close), we call
+//     setLassoBoxState(2) to commit any pending resize and fully
+//     release the lasso state — required to avoid leaving the host's
+//     gesture chain dangling (sn-formula precedent).
 //
-// No popup. The handler reads state, dispatches by anchor presence,
-// and tears down. Phase 5 swaps the button's name/icon between
-// "Set Anchor" and "Apply Alignment" via modifyButtonRes.
+// Caching: while the popup is showing, the firmware can't change the
+// lasso bbox or the page size (menu is hidden, no nav). We capture
+// both at popup open and reuse the cached values for every settings
+// change and the Apply path. This avoids 4 firmware calls per
+// interaction (getCurrentFilePath, getCurrentPageNum, getPageSize,
+// getLassoRect) — a meaningful battery + latency win on E-Ink.
+//
+// Reentrancy guard: tryAcquire on entry, release SYNC-FIRST in the
+// finally block of action handlers (the firmware's state:stop can
+// suspend mid-await). Settings-only callbacks (picker, gaps, toggles)
+// don't need the guard since they don't touch firmware state.
 
 import {tryAcquire, release} from '../core/reentrancyGuard';
-import {computeAnchorShift, type Rect} from '../core/anchor';
+import {computeAnchorShift, translateRect, type AlignmentConfig, type ReferencePoint, type Rect} from '../core/anchor';
 import type {APIResponse, Logger} from '../sdk/types';
 import {unwrap} from '../sdk/unwrap';
 import {safeClosePluginView} from '../sdk/closeView';
+import {fitsInPage, resolvePageSize, type PageSize, type PageSizeCommAPI, type PageSizeFileAPI} from '../sdk/pageSize';
 import type {AnchorStorage} from '../storage/anchorStorage';
+import type {AlignmentPopupCallbacks} from '../ui/AlignmentPopup';
+import {hidePopup, showPopup, updatePopup} from '../ui/popupController';
 
+const LASSO_BOX_STATE_HIDDEN = 1;
 const LASSO_BOX_STATE_RELEASED = 2;
 
-export type LassoCommAPILike = {
+export type LassoCommAPILike = PageSizeCommAPI & {
   getLassoRect: () => Promise<APIResponse<Rect>>;
   resizeLassoRect: (rect: Rect) => Promise<APIResponse<boolean>>;
   setLassoBoxState: (state: number) => Promise<APIResponse<boolean>>;
@@ -30,14 +48,56 @@ export type LassoCommAPILike = {
 
 export type LassoDeps = {
   comm: LassoCommAPILike;
+  fileApi: PageSizeFileAPI;
   storage: AnchorStorage;
   logger: Logger;
-  // Phase 5: swap the lasso button identity to "Apply Alignment"
-  // after a successful Set Anchor. Phase 4 leaves it absent.
-  onAnchorSaved?: () => void;
 };
 
-export type LassoOutcome = 'ok-saved' | 'ok-applied' | 'busy' | 'noop' | 'failed';
+export type LassoOutcome = 'opened' | 'busy' | 'failed';
+
+const tryGetLassoRect = async (deps: LassoDeps): Promise<Rect | null> => {
+  try {
+    return unwrap(await deps.comm.getLassoRect(), 'getLassoRect');
+  } catch (e) {
+    deps.logger.warn(`[align:lasso] getLassoRect failed: ${(e as Error).message}`);
+    return null;
+  }
+};
+
+const safeSetLassoBoxState = async (deps: LassoDeps, state: number): Promise<void> => {
+  try {
+    const res = await deps.comm.setLassoBoxState(state);
+    if (!res || !res.success) {
+      deps.logger.warn(`[align:lasso] setLassoBoxState(${state}) success=false: ${res?.error?.message ?? 'unknown'}`);
+    }
+  } catch (e) {
+    deps.logger.warn(`[align:lasso] setLassoBoxState(${state}) threw: ${(e as Error).message}`);
+  }
+};
+
+const wouldExitPage = (
+  config: AlignmentConfig,
+  anchorBox: Rect | null,
+  lasso: Rect | null,
+  page: PageSize,
+): boolean => {
+  if (!anchorBox || !lasso) {
+    return false;
+  }
+  const {dx, dy} = computeAnchorShift(anchorBox, lasso, config);
+  return !fitsInPage(translateRect(lasso, dx, dy), page);
+};
+
+const teardown = async (deps: LassoDeps): Promise<void> => {
+  release();
+  hidePopup();
+  // Commit any pending resize and fully release the lasso state on
+  // every teardown path. Without this the gesture chain stays armed
+  // and pen taps may not land on the page until the user exits the
+  // note (sn-formula / sn-dictionary precedent).
+  await safeSetLassoBoxState(deps, LASSO_BOX_STATE_RELEASED);
+  await safeClosePluginView(deps.comm, deps.logger);
+};
 
 export const onLassoMain = async (deps: LassoDeps): Promise<LassoOutcome> => {
   if (!tryAcquire()) {
@@ -46,64 +106,145 @@ export const onLassoMain = async (deps: LassoDeps): Promise<LassoOutcome> => {
     return 'busy';
   }
 
+  let initial;
   try {
-    const state = await deps.storage.load();
-    const lassoRect = unwrap(await deps.comm.getLassoRect(), 'getLassoRect');
-
-    if (state.anchorBox === null) {
-      // Set Anchor branch.
-      await deps.storage.setAnchorBox(lassoRect);
-      deps.logger.log(`[align:lasso] saved anchor box=${JSON.stringify(lassoRect)}`);
-      if (deps.onAnchorSaved) {
-        try {
-          deps.onAnchorSaved();
-        } catch (e) {
-          deps.logger.warn(`[align:lasso] onAnchorSaved threw: ${(e as Error).message}`);
-        }
-      }
-      return 'ok-saved';
-    }
-
-    // Apply Alignment branch.
-    const {dx, dy} = computeAnchorShift(state.anchorBox, lassoRect, state.alignmentType);
-    if (dx === 0 && dy === 0) {
-      deps.logger.log('[align:lasso] selection already aligned with anchor');
-      return 'noop';
-    }
-
-    const newRect: Rect = {
-      left: lassoRect.left + dx,
-      top: lassoRect.top + dy,
-      right: lassoRect.right + dx,
-      bottom: lassoRect.bottom + dy,
-    };
-
-    deps.logger.log(
-      `[align:lasso] resize lasso (dx=${dx}, dy=${dy}, type=${state.alignmentType}) ${JSON.stringify(
-        lassoRect,
-      )} -> ${JSON.stringify(newRect)}`,
-    );
-
-    const res = await deps.comm.resizeLassoRect(newRect);
-    if (!res || !res.success) {
-      deps.logger.warn(`[align:lasso] resizeLassoRect failed: ${res?.error?.message ?? 'no error'}`);
-      return 'failed';
-    }
-
-    deps.logger.log('[align:lasso] resizeLassoRect ok');
-    return 'ok-applied';
+    initial = await deps.storage.load();
   } catch (e) {
-    deps.logger.error(`[align:lasso] crashed: ${(e as Error).message}`);
-    return 'failed';
-  } finally {
-    // SYNC-FIRST: release before any await — the firmware can suspend
-    // the JS context mid-await and leave the busy flag stuck.
+    deps.logger.error(`[align:lasso] storage.load crashed: ${(e as Error).message}`);
     release();
-    try {
-      await deps.comm.setLassoBoxState(LASSO_BOX_STATE_RELEASED);
-    } catch (e) {
-      deps.logger.warn(`[align:lasso] setLassoBoxState(2) threw: ${(e as Error).message}`);
-    }
     await safeClosePluginView(deps.comm, deps.logger);
+    return 'failed';
   }
+
+  // One-shot firmware reads — neither value can change while our
+  // popup is showing (the menu is hidden + no nav available).
+  const lasso = await tryGetLassoRect(deps);
+  const page = await resolvePageSize(deps.comm, deps.fileApi, deps.logger);
+
+  // Hide the lasso menu now that we've captured what we need to
+  // render the popup. State 1 keeps the lasso alive for resize.
+  await safeSetLassoBoxState(deps, LASSO_BOX_STATE_HIDDEN);
+
+  // Closure-local state mirrors what's in storage so settings-only
+  // callbacks can avoid an extra storage.load round-trip.
+  let cfg: AlignmentConfig = initial.config;
+  const anchorBox: Rect | null = initial.anchorBox;
+
+  const refreshUi = (): void => {
+    updatePopup({
+      config: cfg,
+      hasAnchor: anchorBox !== null,
+      noLasso: lasso === null,
+      outOfBounds: wouldExitPage(cfg, anchorBox, lasso, page),
+    });
+  };
+
+  const patchConfig = async (patch: Partial<AlignmentConfig>): Promise<void> => {
+    cfg = {...cfg, ...patch};
+    await deps.storage.setConfig(cfg);
+    refreshUi();
+  };
+
+  const onPatchError = (label: string) => (e: unknown) =>
+    deps.logger.warn(`[align:lasso] ${label} failed: ${(e as Error).message}`);
+
+  const callbacks: AlignmentPopupCallbacks = {
+    onSetAnchorRef: (ref: ReferencePoint) => {
+      patchConfig({anchorRef: ref}).catch(onPatchError('setAnchorRef'));
+    },
+    onSetTargetRef: (ref: ReferencePoint) => {
+      patchConfig({targetRef: ref}).catch(onPatchError('setTargetRef'));
+    },
+    onToggleAlignX: () => {
+      patchConfig({alignX: !cfg.alignX}).catch(onPatchError('toggleAlignX'));
+    },
+    onToggleAlignY: () => {
+      patchConfig({alignY: !cfg.alignY}).catch(onPatchError('toggleAlignY'));
+    },
+    onSetGapX: (value: number) => {
+      patchConfig({gapX: value}).catch(onPatchError('setGapX'));
+    },
+    onSetGapY: (value: number) => {
+      patchConfig({gapY: value}).catch(onPatchError('setGapY'));
+    },
+    onSetAnchor: () => {
+      (async () => {
+        try {
+          if (!lasso) {
+            deps.logger.warn('[align:lasso] set anchor: no lasso selection');
+            return;
+          }
+          await deps.storage.setAnchorBox(lasso);
+          deps.logger.log(`[align:lasso] set anchor box=${JSON.stringify(lasso)}`);
+        } catch (e) {
+          deps.logger.error(`[align:lasso] set anchor crashed: ${(e as Error).message}`);
+        } finally {
+          await teardown(deps);
+        }
+      })().catch(() => {
+        /* logged inside */
+      });
+    },
+    onApply: () => {
+      (async () => {
+        try {
+          if (!anchorBox) {
+            deps.logger.warn('[align:lasso] apply: no anchor saved');
+            return;
+          }
+          if (!lasso) {
+            deps.logger.warn('[align:lasso] apply: no lasso selection');
+            return;
+          }
+          const {dx, dy} = computeAnchorShift(anchorBox, lasso, cfg);
+          if (dx === 0 && dy === 0) {
+            deps.logger.log('[align:lasso] apply: already aligned (noop)');
+            return;
+          }
+          const newRect = translateRect(lasso, dx, dy);
+          if (!fitsInPage(newRect, page)) {
+            deps.logger.warn(
+              `[align:lasso] apply rejected: ${JSON.stringify(newRect)} exits page ${JSON.stringify(page)}`,
+            );
+            return;
+          }
+          deps.logger.log(
+            `[align:lasso] resize lasso (dx=${dx}, dy=${dy}) ${JSON.stringify(lasso)} -> ${JSON.stringify(newRect)}`,
+          );
+          const res = await deps.comm.resizeLassoRect(newRect);
+          if (!res || !res.success) {
+            deps.logger.warn(`[align:lasso] resizeLassoRect failed: ${res?.error?.message ?? 'no error'}`);
+          }
+        } catch (e) {
+          deps.logger.error(`[align:lasso] apply crashed: ${(e as Error).message}`);
+        } finally {
+          // teardown calls setLassoBoxState(2) which commits the
+          // pending resizeLassoRect (firmware semantics) and supports
+          // native undo.
+          await teardown(deps);
+        }
+      })().catch(() => {
+        /* logged inside */
+      });
+    },
+    onClose: () => {
+      teardown(deps).catch(() => {
+        /* logged inside */
+      });
+    },
+  };
+
+  showPopup(
+    {
+      config: cfg,
+      hasAnchor: anchorBox !== null,
+      outOfBounds: wouldExitPage(cfg, anchorBox, lasso, page),
+      noLasso: lasso === null,
+    },
+    callbacks,
+  );
+
+  deps.logger.log(`[align:lasso] popup opened (anchor=${anchorBox ? 'set' : 'none'} config=${JSON.stringify(cfg)})`);
+
+  return 'opened';
 };

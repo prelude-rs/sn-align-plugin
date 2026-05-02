@@ -1,37 +1,31 @@
-// Bridge between the popup-driven handler and the popup component.
-// State carries the minimum the picker needs: the current
-// alignmentType (drives the inverted "selected" cell) and whether
-// any anchorBox is set (drives Clear button visibility). Storing the
-// full anchorBox here would couple the picker to lasso bbox shape
-// for no UI gain — the value isn't shown in the dialog.
+// Bridge between the lasso button handler and the popup component.
+// State carries the full AlignmentConfig + flags driving the popup's
+// affordances (whether an anchor exists, whether the would-be result
+// goes off-page, whether there's no lasso to act on).
 //
-// Callbacks instead of a Promise: an awaited promise would block the
-// handler's `finally` and risk leaving the firmware overlay open.
-// `subscribe()` replays current state immediately so we don't lose
-// `show()` events that fire before the React mount cycle catches up.
+// `subscribe()` replays current state immediately so a `show()` that
+// fired before the React mount cycle catches up isn't lost.
 
-import type {AlignmentType} from '../core/anchor';
-import {DEFAULT_ANCHOR_STATE} from '../storage/anchorStorage';
-
-export type PopupCallbacks = {
-  onSetAlignmentType: (alignmentType: AlignmentType) => void;
-  onClearAnchor: () => void;
-  onClose: () => void;
-};
+import {DEFAULT_ALIGNMENT_CONFIG, type AlignmentConfig} from '../core/anchor';
+import type {AlignmentPopupCallbacks} from './AlignmentPopup';
 
 export type PopupState = {
   active: boolean;
-  alignmentType: AlignmentType;
+  config: AlignmentConfig;
   hasAnchor: boolean;
-  callbacks: PopupCallbacks | null;
+  outOfBounds: boolean;
+  noLasso: boolean;
+  callbacks: AlignmentPopupCallbacks | null;
 };
 
 type Listener = (state: PopupState) => void;
 
 const initialState: PopupState = {
   active: false,
-  alignmentType: DEFAULT_ANCHOR_STATE.alignmentType,
+  config: DEFAULT_ALIGNMENT_CONFIG,
   hasAnchor: false,
+  outOfBounds: false,
+  noLasso: false,
   callbacks: null,
 };
 
@@ -43,8 +37,15 @@ const emit = (next: PopupState): void => {
   listeners.forEach(l => l(next));
 };
 
-export const showPopup = (alignmentType: AlignmentType, hasAnchor: boolean, callbacks: PopupCallbacks): void => {
-  emit({active: true, alignmentType, hasAnchor, callbacks});
+export const showPopup = (args: Omit<PopupState, 'active' | 'callbacks'>, callbacks: AlignmentPopupCallbacks): void => {
+  emit({active: true, ...args, callbacks});
+};
+
+export const updatePopup = (patch: Partial<Omit<PopupState, 'active' | 'callbacks'>>): void => {
+  if (!currentState.active) {
+    return;
+  }
+  emit({...currentState, ...patch});
 };
 
 export const hidePopup = (): void => {
@@ -55,7 +56,6 @@ export const getCurrentState = (): PopupState => currentState;
 
 export const subscribe = (listener: Listener): (() => void) => {
   listeners.add(listener);
-  // Replay current state so we don't race the React mount cycle.
   listener(currentState);
   return () => {
     listeners.delete(listener);
