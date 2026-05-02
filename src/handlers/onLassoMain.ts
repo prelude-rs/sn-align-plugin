@@ -1,8 +1,20 @@
 // Single popup-driven lasso handler. The button (showType:1) opens
 // the popup; all interactions (picker, toggles, gaps, save, apply,
-// clear) flow back through callbacks. Apply translates the lasso via
-// resizeLassoRect + setLassoBoxState(2); other actions just touch
-// storage and update the popup state.
+// clear) flow back through callbacks.
+//
+// Lasso box state lifecycle (per SDK: 0=Show, 1=Hide, 2=Completely
+// remove):
+//   - On entry, after capturing the initial lasso bbox, we call
+//     setLassoBoxState(1) to HIDE the lasso menu/toolbar. This keeps
+//     the lasso selection alive (so resizeLassoRect can still operate
+//     on it during Apply) while removing the visual pollution of
+//     stacking our popup on top of the menu. Mirrors the sn-dictionary
+//     pattern but using state 1 instead of 2 since we still need the
+//     lasso for the Apply path.
+//   - On every teardown path (Save / Apply / Clear / Close), we call
+//     setLassoBoxState(2) to commit any pending resize and fully
+//     release the lasso state — required to avoid leaving the host's
+//     gesture chain dangling (sn-formula precedent).
 //
 // Reentrancy guard: tryAcquire on entry, release SYNC-FIRST in the
 // finally block of action handlers (the firmware's state:stop can
@@ -19,6 +31,7 @@ import type {AnchorStorage} from '../storage/anchorStorage';
 import type {AlignmentPopupCallbacks} from '../ui/AlignmentPopup';
 import {hidePopup, showPopup, updatePopup} from '../ui/popupController';
 
+const LASSO_BOX_STATE_HIDDEN = 1;
 const LASSO_BOX_STATE_RELEASED = 2;
 
 export type LassoCommAPILike = PageSizeCommAPI & {
@@ -43,6 +56,17 @@ const tryGetLassoRect = async (deps: LassoDeps): Promise<Rect | null> => {
   } catch (e) {
     deps.logger.warn(`[align:lasso] getLassoRect failed: ${(e as Error).message}`);
     return null;
+  }
+};
+
+const safeSetLassoBoxState = async (deps: LassoDeps, state: number): Promise<void> => {
+  try {
+    const res = await deps.comm.setLassoBoxState(state);
+    if (!res || !res.success) {
+      deps.logger.warn(`[align:lasso] setLassoBoxState(${state}) success=false: ${res?.error?.message ?? 'unknown'}`);
+    }
+  } catch (e) {
+    deps.logger.warn(`[align:lasso] setLassoBoxState(${state}) threw: ${(e as Error).message}`);
   }
 };
 
@@ -71,6 +95,11 @@ const recomputeFlags = async (deps: LassoDeps): Promise<void> => {
 const teardown = async (deps: LassoDeps): Promise<void> => {
   release();
   hidePopup();
+  // Commit any pending resize and fully release the lasso state on
+  // every teardown path. Without this the gesture chain stays armed
+  // and pen taps may not land on the page until the user exits the
+  // note (sn-formula / sn-dictionary precedent).
+  await safeSetLassoBoxState(deps, LASSO_BOX_STATE_RELEASED);
   await safeClosePluginView(deps.comm, deps.logger);
 };
 
@@ -93,6 +122,10 @@ export const onLassoMain = async (deps: LassoDeps): Promise<LassoOutcome> => {
 
   const lasso = await tryGetLassoRect(deps);
   const initialOob = await computeOutOfBounds(deps, initial.config, initial.anchorBox, lasso);
+
+  // Hide the lasso menu now that we've captured what we need to
+  // render the popup. State 1 keeps the lasso alive for resize.
+  await safeSetLassoBoxState(deps, LASSO_BOX_STATE_HIDDEN);
 
   const setConfigPatch = async (patch: Partial<AlignmentConfig>): Promise<void> => {
     const cur = await deps.storage.load();
@@ -190,14 +223,12 @@ export const onLassoMain = async (deps: LassoDeps): Promise<LassoOutcome> => {
             deps.logger.warn(`[align:lasso] resizeLassoRect failed: ${res?.error?.message ?? 'no error'}`);
             return;
           }
-          try {
-            await deps.comm.setLassoBoxState(LASSO_BOX_STATE_RELEASED);
-          } catch (e) {
-            deps.logger.warn(`[align:lasso] setLassoBoxState(2) threw: ${(e as Error).message}`);
-          }
         } catch (e) {
           deps.logger.error(`[align:lasso] apply crashed: ${(e as Error).message}`);
         } finally {
+          // teardown calls setLassoBoxState(2) which commits the
+          // pending resizeLassoRect (firmware semantics) and supports
+          // native undo.
           await teardown(deps);
         }
       })().catch(() => {

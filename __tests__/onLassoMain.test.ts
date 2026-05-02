@@ -60,6 +60,14 @@ describe('onLassoMain — popup-driven entry', () => {
     expect(getCurrentState().noLasso).toBe(false);
   });
 
+  it('hides the lasso menu (state 1) on entry, keeping the lasso alive for resize', async () => {
+    const {deps, setLassoBoxState} = buildDeps(DEFAULT_ANCHOR_STATE);
+    await onLassoMain(deps);
+    expect(setLassoBoxState).toHaveBeenCalledWith(1);
+    // Should NOT call state 2 yet — that happens on teardown.
+    expect(setLassoBoxState).not.toHaveBeenCalledWith(2);
+  });
+
   it('reflects existing anchorBox via hasAnchor=true', async () => {
     const anchored: AnchorState = {
       config: DEFAULT_ALIGNMENT_CONFIG,
@@ -100,13 +108,15 @@ describe('onLassoMain — popup-driven entry', () => {
 describe('onLassoMain — popup callbacks', () => {
   it('onSaveAnchor saves the lasso bbox as anchor and tears down', async () => {
     const lasso: Rect = {left: 10, top: 20, right: 30, bottom: 40};
-    const {deps, storage, closePluginView} = buildDeps(DEFAULT_ANCHOR_STATE, lasso);
+    const {deps, storage, closePluginView, setLassoBoxState} = buildDeps(DEFAULT_ANCHOR_STATE, lasso);
     await onLassoMain(deps);
     const cbs = getCurrentState().callbacks!;
     cbs.onSaveAnchor();
     await new Promise(r => setTimeout(r, 0));
     expect((await storage.load()).anchorBox).toEqual(lasso);
     expect(closePluginView).toHaveBeenCalled();
+    // Teardown releases the lasso state.
+    expect(setLassoBoxState).toHaveBeenCalledWith(2);
   });
 
   it('onApply translates the lasso and calls setLassoBoxState(2)', async () => {
@@ -124,7 +134,7 @@ describe('onLassoMain — popup callbacks', () => {
     expect(setLassoBoxState).toHaveBeenCalledWith(2);
   });
 
-  it('onApply skips resize when target would exit page', async () => {
+  it('onApply skips resize when target would exit page (still releases on teardown)', async () => {
     const anchored: AnchorState = {
       config: {...DEFAULT_ALIGNMENT_CONFIG, anchorRef: 'right', targetRef: 'left'},
       anchorBox: {left: 1900, top: 100, right: 1910, bottom: 200},
@@ -136,7 +146,8 @@ describe('onLassoMain — popup callbacks', () => {
     cbs.onApply();
     await new Promise(r => setTimeout(r, 0));
     expect(resizeLassoRect).not.toHaveBeenCalled();
-    expect(setLassoBoxState).not.toHaveBeenCalled();
+    // Teardown still releases the lasso state.
+    expect(setLassoBoxState).toHaveBeenCalledWith(2);
     expect(logs.some(l => l.includes('apply rejected'))).toBe(true);
   });
 
@@ -145,13 +156,14 @@ describe('onLassoMain — popup callbacks', () => {
       config: DEFAULT_ALIGNMENT_CONFIG,
       anchorBox: {left: 100, top: 200, right: 300, bottom: 400},
     };
-    const {deps, storage, closePluginView} = buildDeps(anchored);
+    const {deps, storage, closePluginView, setLassoBoxState} = buildDeps(anchored);
     await onLassoMain(deps);
     const cbs = getCurrentState().callbacks!;
     cbs.onClearAnchor();
     await new Promise(r => setTimeout(r, 0));
     expect((await storage.load()).anchorBox).toBe(null);
     expect(closePluginView).toHaveBeenCalled();
+    expect(setLassoBoxState).toHaveBeenCalledWith(2);
   });
 
   it('onSetAnchorRef persists the new ref and updates popup state', async () => {
