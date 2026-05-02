@@ -1,6 +1,6 @@
 {
   "name": "SnAlign",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -13,7 +13,6 @@
     "build": "npm run --silent clean && bash buildPlugin.sh"
   },
   "dependencies": {
-    "@react-native-async-storage/async-storage": "^3.0.2",
     "react": "19.0.0",
     "react-native": "0.79.2",
     "sn-plugin-lib": "^0.1.19"
@@ -34,9 +33,9 @@
     "@types/react-test-renderer": "^19.0.0",
     "eslint": "^8.19.0",
     "jest": "^29.6.3",
-    "prettier": "2.8.8",
+    "prettier": "^3.8.3",
     "react-test-renderer": "19.0.0",
-    "typescript": "5.0.4"
+    "typescript": "^5.9.3"
   },
   "engines": {
     "node": ">=18"

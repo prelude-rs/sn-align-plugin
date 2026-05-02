@@ -1,6 +1,13 @@
 # SnAlign
 
-A Supernote plugin to align lasso selections to a saved reference. Pick where on a selection you'd like to anchor (any of the 8 edges/corners), save the anchor, then apply that alignment to other selections — text, strokes, images, or any mix.
+A Supernote plugin that aligns one lasso selection to another. Pick a reference point on a saved **anchor** rectangle and a reference point on the current **target** selection — SnAlign translates the target so the two points land on each other. Optional X/Y gaps let you place selections **next to** an anchor with precise spacing (no overlap, predictable distance).
+
+Use it to:
+
+- Snap two paragraphs to the same left edge.
+- Stack a new sticker directly under an existing one with 20px of breathing room.
+- Center a small note inside a larger box.
+- Line up a row of icons to share a common vertical center.
 
 ## Install
 
@@ -8,53 +15,58 @@ A Supernote plugin to align lasso selections to a saved reference. Pick where on
 2. Copy it to your Supernote (over USB or your usual sideload route).
 3. On the device, open the plugin manager and install the file.
 
-Two new buttons appear on a Note:
-
-- **Set Alignment** — on the page side toolbar (always visible).
-- **Set Anchor** / **Apply Alignment** — on the lasso toolbar (the one that pops up after you draw a lasso). Only one of these shows at a time.
+A single **Alignment** button appears on the lasso toolbar (the one that pops up after you draw a lasso). Tapping it opens a popup with all the controls.
 
 ## How to use
 
-Two settings combine to translate a selection: a **direction** (which edge or corner to align) and an **anchor** (the reference rectangle to align to). They're independent — change one without disturbing the other.
+### 1. Save an anchor
 
-### Set the alignment direction
+1. Lasso the rectangle you want to use as the reference (strokes, text, images, shapes, or a mix).
+2. Tap **Alignment** → **Set Anchor**. The popup closes.
 
-1. Tap **Set Alignment** on the page toolbar.
-2. Pick a cell in the 3×3 grid:
-   - corners → align that corner of your selection to the same corner of the anchor
-   - sides → align that edge only (the other axis is unchanged)
-3. The selected direction is highlighted; close the dialog.
+The bounding box of that lasso is now your anchor.
 
-### Save an anchor
-
-1. Lasso anything on the page (strokes, text boxes, images, or a mix).
-2. Tap **Set Anchor** on the lasso toolbar.
-
-The bounding box of that lasso is saved as the anchor.
-
-### Apply
+### 2. Apply alignment to a new selection
 
 1. Lasso another piece of content.
-2. Tap **Apply Alignment**.
+2. Tap **Alignment**. The popup opens.
+3. In the popup:
+   - **Anchor** picker (left) — pick which point on the anchor to use (any corner, any edge mid-point, or the center).
+   - **Target** picker (right) — pick which point on the *current* lasso to align to that anchor point.
+   - **Align X / Align Y** toggles — turn one off to keep that axis untouched. With both on, the target snaps to both axes.
+   - **Gap X / Gap Y** steppers — push the target away from the anchor by that many pixels along each axis (positive = away, ±10 per tap).
+4. Tap **Apply Alignment**. The lasso slides into place. The move is undoable with the device's standard undo.
 
-The selection slides so its chosen edge or corner lands on the same edge or corner of the saved anchor. The move is undoable with the device's standard undo.
+### Replace the anchor
 
-### Clear the anchor
+When an anchor is set, the popup also shows **Set New Anchor** — tap it to overwrite the current anchor with the bounding box of your live lasso.
 
-Open the **Set Alignment** dialog and tap **Clear Anchor**. The direction stays; only the anchor is removed. The lasso button flips back to **Set Anchor**.
+## Examples
+
+| Effect | Anchor / Target | Toggles |
+|---|---|---|
+| Match left edges (vertical position untouched) | Left / Left | Align X only |
+| Match top edges (horizontal position untouched) | Top / Top | Align Y only |
+| Stack target directly below anchor, both centered | Bottom / Top | Align X + Y |
+| Place target to the right of anchor with a gap | Right / Left + Gap X = 20 | Align X + Y |
+| Center target inside anchor | Center / Center | Align X + Y |
 
 ## What works
 
-- Strokes
+- Strokes (handwriting)
 - Text boxes
 - Images
-- Mixed selections
+- Geometric shapes (lines, curves, circles, ellipses, polygons)
+- Any mix of the above
+
+The plugin won't apply a move that would push your selection past the page edge — the **Apply Alignment** button is disabled in that state with an inline warning, and you can adjust gaps or pick a different anchor/target combination to fit.
 
 ## Limits
 
-- The anchor is in-memory only — it's lost when the plugin host restarts (e.g. after a device reboot or a plugin reinstall). Survives navigating between notes.
-- Verified on the Supernote A5X2; other models likely work but aren't tested.
+- The anchor is in-memory only. It's preserved while you swap between notes within a session, but lost when the plugin host restarts (device reboot or plugin reinstall).
+- Verified on the Supernote A5X2. Other models likely work but aren't tested.
+- The plugin does pure visual translation — it doesn't resize, rotate, or modify the content itself.
 
 ## License
 
-MIT — see [LICENSE](LICENSE) if present in the repo.
+MIT — see [LICENSE](LICENSE).
