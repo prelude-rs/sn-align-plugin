@@ -8,13 +8,18 @@
 //     setLassoBoxState(1) to HIDE the lasso menu/toolbar. This keeps
 //     the lasso selection alive (so resizeLassoRect can still operate
 //     on it during Apply) while removing the visual pollution of
-//     stacking our popup on top of the menu. Mirrors the sn-dictionary
-//     pattern but using state 1 instead of 2 since we still need the
-//     lasso for the Apply path.
-//   - On every teardown path (Save / Apply / Clear / Close), we call
+//     stacking our popup on top of the menu.
+//   - On every teardown path (Set Anchor / Apply / Close), we call
 //     setLassoBoxState(2) to commit any pending resize and fully
 //     release the lasso state — required to avoid leaving the host's
 //     gesture chain dangling (sn-formula precedent).
+//
+// Caching: while the popup is showing, the firmware can't change the
+// lasso bbox or the page size (menu is hidden, no nav). We capture
+// both at popup open and reuse the cached values for every settings
+// change and the Apply path. This avoids 4 firmware calls per
+// interaction (getCurrentFilePath, getCurrentPageNum, getPageSize,
+// getLassoRect) — a meaningful battery + latency win on E-Ink.
 //
 // Reentrancy guard: tryAcquire on entry, release SYNC-FIRST in the
 // finally block of action handlers (the firmware's state:stop can
@@ -26,7 +31,7 @@ import {computeAnchorShift, translateRect, type AlignmentConfig, type ReferenceP
 import type {APIResponse, Logger} from '../sdk/types';
 import {unwrap} from '../sdk/unwrap';
 import {safeClosePluginView} from '../sdk/closeView';
-import {fitsInPage, resolvePageSize, type PageSizeCommAPI, type PageSizeFileAPI} from '../sdk/pageSize';
+import {fitsInPage, resolvePageSize, type PageSize, type PageSizeCommAPI, type PageSizeFileAPI} from '../sdk/pageSize';
 import type {AnchorStorage} from '../storage/anchorStorage';
 import type {AlignmentPopupCallbacks} from '../ui/AlignmentPopup';
 import {hidePopup, showPopup, updatePopup} from '../ui/popupController';
@@ -70,26 +75,17 @@ const safeSetLassoBoxState = async (deps: LassoDeps, state: number): Promise<voi
   }
 };
 
-const computeOutOfBounds = async (
-  deps: LassoDeps,
+const wouldExitPage = (
   config: AlignmentConfig,
   anchorBox: Rect | null,
-  lassoRect: Rect | null,
-): Promise<boolean> => {
-  if (!anchorBox || !lassoRect) {
+  lasso: Rect | null,
+  page: PageSize,
+): boolean => {
+  if (!anchorBox || !lasso) {
     return false;
   }
-  const {dx, dy} = computeAnchorShift(anchorBox, lassoRect, config);
-  const newRect = translateRect(lassoRect, dx, dy);
-  const page = await resolvePageSize(deps.comm, deps.fileApi, deps.logger);
-  return !fitsInPage(newRect, page);
-};
-
-const recomputeFlags = async (deps: LassoDeps): Promise<void> => {
-  const state = await deps.storage.load();
-  const lasso = await tryGetLassoRect(deps);
-  const oob = await computeOutOfBounds(deps, state.config, state.anchorBox, lasso);
-  updatePopup({config: state.config, hasAnchor: state.anchorBox !== null, noLasso: lasso === null, outOfBounds: oob});
+  const {dx, dy} = computeAnchorShift(anchorBox, lasso, config);
+  return !fitsInPage(translateRect(lasso, dx, dy), page);
 };
 
 const teardown = async (deps: LassoDeps): Promise<void> => {
@@ -120,64 +116,66 @@ export const onLassoMain = async (deps: LassoDeps): Promise<LassoOutcome> => {
     return 'failed';
   }
 
+  // One-shot firmware reads — neither value can change while our
+  // popup is showing (the menu is hidden + no nav available).
   const lasso = await tryGetLassoRect(deps);
-  const initialOob = await computeOutOfBounds(deps, initial.config, initial.anchorBox, lasso);
+  const page = await resolvePageSize(deps.comm, deps.fileApi, deps.logger);
 
   // Hide the lasso menu now that we've captured what we need to
   // render the popup. State 1 keeps the lasso alive for resize.
   await safeSetLassoBoxState(deps, LASSO_BOX_STATE_HIDDEN);
 
-  const setConfigPatch = async (patch: Partial<AlignmentConfig>): Promise<void> => {
-    const cur = await deps.storage.load();
-    const next: AlignmentConfig = {...cur.config, ...patch};
-    await deps.storage.setConfig(next);
-    await recomputeFlags(deps);
+  // Closure-local state mirrors what's in storage so settings-only
+  // callbacks can avoid an extra storage.load round-trip.
+  let cfg: AlignmentConfig = initial.config;
+  const anchorBox: Rect | null = initial.anchorBox;
+
+  const refreshUi = (): void => {
+    updatePopup({
+      config: cfg,
+      hasAnchor: anchorBox !== null,
+      noLasso: lasso === null,
+      outOfBounds: wouldExitPage(cfg, anchorBox, lasso, page),
+    });
   };
+
+  const patchConfig = async (patch: Partial<AlignmentConfig>): Promise<void> => {
+    cfg = {...cfg, ...patch};
+    await deps.storage.setConfig(cfg);
+    refreshUi();
+  };
+
+  const onPatchError = (label: string) => (e: unknown) =>
+    deps.logger.warn(`[align:lasso] ${label} failed: ${(e as Error).message}`);
 
   const callbacks: AlignmentPopupCallbacks = {
     onSetAnchorRef: (ref: ReferencePoint) => {
-      setConfigPatch({anchorRef: ref}).catch(e =>
-        deps.logger.warn(`[align:lasso] setAnchorRef failed: ${(e as Error).message}`),
-      );
+      patchConfig({anchorRef: ref}).catch(onPatchError('setAnchorRef'));
     },
     onSetTargetRef: (ref: ReferencePoint) => {
-      setConfigPatch({targetRef: ref}).catch(e =>
-        deps.logger.warn(`[align:lasso] setTargetRef failed: ${(e as Error).message}`),
-      );
+      patchConfig({targetRef: ref}).catch(onPatchError('setTargetRef'));
     },
     onToggleAlignX: () => {
-      deps.storage
-        .load()
-        .then(s => setConfigPatch({alignX: !s.config.alignX}))
-        .catch(e => deps.logger.warn(`[align:lasso] toggleX failed: ${(e as Error).message}`));
+      patchConfig({alignX: !cfg.alignX}).catch(onPatchError('toggleAlignX'));
     },
     onToggleAlignY: () => {
-      deps.storage
-        .load()
-        .then(s => setConfigPatch({alignY: !s.config.alignY}))
-        .catch(e => deps.logger.warn(`[align:lasso] toggleY failed: ${(e as Error).message}`));
+      patchConfig({alignY: !cfg.alignY}).catch(onPatchError('toggleAlignY'));
     },
     onSetGapX: (value: number) => {
-      setConfigPatch({gapX: value}).catch(e =>
-        deps.logger.warn(`[align:lasso] setGapX failed: ${(e as Error).message}`),
-      );
+      patchConfig({gapX: value}).catch(onPatchError('setGapX'));
     },
     onSetGapY: (value: number) => {
-      setConfigPatch({gapY: value}).catch(e =>
-        deps.logger.warn(`[align:lasso] setGapY failed: ${(e as Error).message}`),
-      );
+      patchConfig({gapY: value}).catch(onPatchError('setGapY'));
     },
     onSetAnchor: () => {
       (async () => {
         try {
-          const rect = await tryGetLassoRect(deps);
-          if (!rect) {
+          if (!lasso) {
             deps.logger.warn('[align:lasso] set anchor: no lasso selection');
-            await recomputeFlags(deps);
             return;
           }
-          await deps.storage.setAnchorBox(rect);
-          deps.logger.log(`[align:lasso] set anchor box=${JSON.stringify(rect)}`);
+          await deps.storage.setAnchorBox(lasso);
+          deps.logger.log(`[align:lasso] set anchor box=${JSON.stringify(lasso)}`);
         } catch (e) {
           deps.logger.error(`[align:lasso] set anchor crashed: ${(e as Error).message}`);
         } finally {
@@ -190,23 +188,20 @@ export const onLassoMain = async (deps: LassoDeps): Promise<LassoOutcome> => {
     onApply: () => {
       (async () => {
         try {
-          const state = await deps.storage.load();
-          if (!state.anchorBox) {
+          if (!anchorBox) {
             deps.logger.warn('[align:lasso] apply: no anchor saved');
             return;
           }
-          const lassoRect = await tryGetLassoRect(deps);
-          if (!lassoRect) {
+          if (!lasso) {
             deps.logger.warn('[align:lasso] apply: no lasso selection');
             return;
           }
-          const {dx, dy} = computeAnchorShift(state.anchorBox, lassoRect, state.config);
+          const {dx, dy} = computeAnchorShift(anchorBox, lasso, cfg);
           if (dx === 0 && dy === 0) {
             deps.logger.log('[align:lasso] apply: already aligned (noop)');
             return;
           }
-          const newRect = translateRect(lassoRect, dx, dy);
-          const page = await resolvePageSize(deps.comm, deps.fileApi, deps.logger);
+          const newRect = translateRect(lasso, dx, dy);
           if (!fitsInPage(newRect, page)) {
             deps.logger.warn(
               `[align:lasso] apply rejected: ${JSON.stringify(newRect)} exits page ${JSON.stringify(page)}`,
@@ -214,14 +209,11 @@ export const onLassoMain = async (deps: LassoDeps): Promise<LassoOutcome> => {
             return;
           }
           deps.logger.log(
-            `[align:lasso] resize lasso (dx=${dx}, dy=${dy}) ${JSON.stringify(lassoRect)} -> ${JSON.stringify(
-              newRect,
-            )}`,
+            `[align:lasso] resize lasso (dx=${dx}, dy=${dy}) ${JSON.stringify(lasso)} -> ${JSON.stringify(newRect)}`,
           );
           const res = await deps.comm.resizeLassoRect(newRect);
           if (!res || !res.success) {
             deps.logger.warn(`[align:lasso] resizeLassoRect failed: ${res?.error?.message ?? 'no error'}`);
-            return;
           }
         } catch (e) {
           deps.logger.error(`[align:lasso] apply crashed: ${(e as Error).message}`);
@@ -244,19 +236,15 @@ export const onLassoMain = async (deps: LassoDeps): Promise<LassoOutcome> => {
 
   showPopup(
     {
-      config: initial.config,
-      hasAnchor: initial.anchorBox !== null,
-      outOfBounds: initialOob,
+      config: cfg,
+      hasAnchor: anchorBox !== null,
+      outOfBounds: wouldExitPage(cfg, anchorBox, lasso, page),
       noLasso: lasso === null,
     },
     callbacks,
   );
 
-  deps.logger.log(
-    `[align:lasso] popup opened (anchor=${initial.anchorBox ? 'set' : 'none'} config=${JSON.stringify(
-      initial.config,
-    )})`,
-  );
+  deps.logger.log(`[align:lasso] popup opened (anchor=${anchorBox ? 'set' : 'none'} config=${JSON.stringify(cfg)})`);
 
   return 'opened';
 };
