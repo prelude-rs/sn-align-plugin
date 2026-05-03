@@ -1,6 +1,6 @@
 # SnAlign
 
-A Supernote plugin that aligns one lasso selection to another. Pick a reference point on a saved **anchor** rectangle and a reference point on the current **target** selection — SnAlign translates the target so the two points land on each other. Optional X/Y gaps let you place selections **next to** an anchor with precise spacing (no overlap, predictable distance).
+A Supernote plugin that aligns one lasso selection to another. Pick a reference point on a saved **anchor** rectangle and a reference point on the current **target** selection — SnAlign translates the target so the two points land on each other. Optional X/Y offsets nudge the result along each axis (positive or negative pixels), so you can place selections **next to** an anchor with precise spacing.
 
 Use it to:
 
@@ -38,7 +38,7 @@ The bounding box of that lasso is now your anchor.
    - **Anchor** picker (left) — pick which point on the anchor to use (any corner, any edge mid-point, or the center).
    - **Target** picker (right) — pick which point on the _current_ lasso to align to that anchor point.
    - **Align X / Align Y** toggles — turn one off to keep that axis untouched. With both on, the target snaps to both axes.
-   - **Gap X / Gap Y** steppers — push the target away from the anchor by that many pixels along each axis (positive = away, ±10 per tap).
+   - **Offset X / Offset Y** steppers — shift the target along each axis after the snap. Positive values move the target right / down; negative values move it left / up. ±10 per tap.
 4. Tap **Apply Alignment**. The lasso slides into place. The move is undoable with the device's standard undo.
 
 ### Replace the anchor
@@ -52,7 +52,7 @@ When an anchor is set, the popup also shows **Set New Anchor** — tap it to ove
 | Match left edges (vertical position untouched)    | Left / Left               | Align X only |
 | Match top edges (horizontal position untouched)   | Top / Top                 | Align Y only |
 | Stack target directly below anchor, both centered | Bottom / Top              | Align X + Y  |
-| Place target to the right of anchor with a gap    | Right / Left + Gap X = 20 | Align X + Y  |
+| Place target to the right of anchor with a gap    | Right / Left + Offset X = 20 | Align X + Y  |
 | Center target inside anchor                       | Center / Center           | Align X + Y  |
 
 ## What works
@@ -63,7 +63,7 @@ When an anchor is set, the popup also shows **Set New Anchor** — tap it to ove
 - Geometric shapes (lines, curves, circles, ellipses, polygons)
 - Any mix of the above
 
-The plugin won't apply a move that would push your selection past the page edge — the **Apply Alignment** button is disabled in that state with an inline warning, and you can adjust gaps or pick a different anchor/target combination to fit.
+The plugin won't apply a move that would push your selection past the page edge — the **Apply Alignment** button is disabled in that state with an inline warning, and you can adjust offsets or pick a different anchor/target combination to fit.
 
 ## Limits
 

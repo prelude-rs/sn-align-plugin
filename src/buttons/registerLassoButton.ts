@@ -1,6 +1,6 @@
 // Single lasso-toolbar button. showType:1 mounts the React popup as
 // a centered dialog; the popup hosts both reference pickers, axis
-// toggles, gap steppers, and the contextual action button.
+// toggles, offset steppers, and the contextual action button.
 //
 // editDataTypes [0..5] = stroke, title, image, text-box, link,
 // geometry. resizeLassoRect is a pure visual translation, so the

@@ -1,5 +1,5 @@
 // Single popup-driven lasso handler. The button (showType:1) opens
-// the popup; all interactions (picker, toggles, gaps, save, apply,
+// the popup; all interactions (picker, toggles, offsets, save, apply,
 // clear) flow back through callbacks.
 //
 // Lasso box state lifecycle (per SDK: 0=Show, 1=Hide, 2=Completely
@@ -23,7 +23,7 @@
 //
 // Reentrancy guard: tryAcquire on entry, release SYNC-FIRST in the
 // finally block of action handlers (the firmware's state:stop can
-// suspend mid-await). Settings-only callbacks (picker, gaps, toggles)
+// suspend mid-await). Settings-only callbacks (picker, offsets, toggles)
 // don't need the guard since they don't touch firmware state.
 
 import {tryAcquire, release} from '../core/reentrancyGuard';
@@ -161,11 +161,11 @@ export const onLassoMain = async (deps: LassoDeps): Promise<LassoOutcome> => {
     onToggleAlignY: () => {
       patchConfig({alignY: !cfg.alignY}).catch(onPatchError('toggleAlignY'));
     },
-    onSetGapX: (value: number) => {
-      patchConfig({gapX: value}).catch(onPatchError('setGapX'));
+    onSetOffsetX: (value: number) => {
+      patchConfig({offsetX: value}).catch(onPatchError('setOffsetX'));
     },
-    onSetGapY: (value: number) => {
-      patchConfig({gapY: value}).catch(onPatchError('setGapY'));
+    onSetOffsetY: (value: number) => {
+      patchConfig({offsetY: value}).catch(onPatchError('setOffsetY'));
     },
     onSetAnchor: () => {
       (async () => {

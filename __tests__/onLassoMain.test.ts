@@ -175,13 +175,13 @@ describe('onLassoMain — popup callbacks', () => {
     expect(getCurrentState().config.anchorRef).toBe('top-right');
   });
 
-  it('onSetGapX persists the new gap', async () => {
+  it('onSetOffsetX persists the new offset', async () => {
     const {deps, storage} = buildDeps(DEFAULT_ANCHOR_STATE);
     await onLassoMain(deps);
     const cbs = getCurrentState().callbacks!;
-    cbs.onSetGapX(50);
+    cbs.onSetOffsetX(50);
     await new Promise(r => setTimeout(r, 0));
-    expect((await storage.load()).config.gapX).toBe(50);
+    expect((await storage.load()).config.offsetX).toBe(50);
   });
 
   it('onToggleAlignY flips the toggle', async () => {

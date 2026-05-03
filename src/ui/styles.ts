@@ -1,6 +1,6 @@
 import {StyleSheet} from 'react-native';
 
-// Single popup with both reference pickers, axis toggles, gap
+// Single popup with both reference pickers, axis toggles, offset
 // steppers, status, and contextual action buttons. E-ink palette:
 // black ink, white background, thick borders.
 
@@ -118,30 +118,33 @@ export const styles = StyleSheet.create({
     color: '#000000',
   },
 
-  // Gap stepper row — fixed-width label and spacer cells flank the
+  // Offset stepper row — fixed-width label and spacer cells flank the
   // stepper so the stepper is geometrically centered in the dialog
   // (label cell width === spacer cell width). justifyContent:'center'
   // floats the whole label+stepper+spacer group in the row.
-  gapRow: {
+  offsetRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8,
   },
-  gapLabelCell: {
+  offsetLabelCell: {
     width: 90,
     alignItems: 'flex-end',
     paddingRight: 12,
   },
-  gapSpacerCell: {
+  offsetSpacerCell: {
     width: 90,
   },
-  gapLabel: {
+  offsetLabel: {
     fontSize: 16,
     fontWeight: '600',
     color: '#000000',
   },
-  gapStepper: {
+  offsetLabelDisabled: {
+    color: '#999999',
+  },
+  offsetStepper: {
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -154,6 +157,10 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  stepperButtonDisabled: {
+    borderColor: '#999999',
+    backgroundColor: '#eeeeee',
+  },
   stepperButtonText: {
     fontSize: 22,
     fontWeight: '700',
@@ -165,6 +172,9 @@ export const styles = StyleSheet.create({
     color: '#000000',
     width: 80,
     textAlign: 'center',
+  },
+  stepperTextDisabled: {
+    color: '#999999',
   },
 
   // Status / warning text.
