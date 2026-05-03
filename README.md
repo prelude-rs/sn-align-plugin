@@ -11,7 +11,7 @@ Use it to:
 
 ## Demo
 
-<video src="https://github.com/user-attachments/assets/aa04f657-f133-4e54-a6e3-5e26ea0066e6" controls></video>
+<video src="https://github.com/user-attachments/assets/541e44ef-d337-4d66-9220-9b0649a1be93" controls></video>
 
 ## Install
 
