@@ -16,8 +16,8 @@ const sampleConfig: AlignmentConfig = {
   targetRef: 'left',
   alignX: true,
   alignY: false,
-  gapX: 30,
-  gapY: 0,
+  offsetX: 30,
+  offsetY: 0,
 };
 
 const sampleState: AnchorState = {
@@ -132,7 +132,7 @@ describe('KV-backed storage', () => {
       ANCHOR_STORAGE_KEY,
       JSON.stringify({
         version: 3,
-        config: {anchorRef: 'middle', targetRef: 'left', alignX: true, alignY: true, gapX: 0, gapY: 0},
+        config: {anchorRef: 'middle', targetRef: 'left', alignX: true, alignY: true, offsetX: 0, offsetY: 0},
         anchorBox: null,
       }),
     );

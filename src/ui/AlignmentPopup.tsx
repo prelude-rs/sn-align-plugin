@@ -10,8 +10,8 @@ export type AlignmentPopupCallbacks = {
   onSetTargetRef: (ref: ReferencePoint) => void;
   onToggleAlignX: () => void;
   onToggleAlignY: () => void;
-  onSetGapX: (value: number) => void;
-  onSetGapY: (value: number) => void;
+  onSetOffsetX: (value: number) => void;
+  onSetOffsetY: (value: number) => void;
   onSetAnchor: () => void;
   onApply: () => void;
   onClose: () => void;
@@ -25,7 +25,7 @@ export type AlignmentPopupProps = {
   callbacks: AlignmentPopupCallbacks;
 };
 
-const GAP_STEP = 10;
+const OFFSET_STEP = 10;
 
 const Toggle: React.FC<{label: string; on: boolean; onPress: () => void}> = ({label, on, onPress}) => (
   <Pressable style={styles.toggle} onPress={onPress}>
@@ -34,25 +34,30 @@ const Toggle: React.FC<{label: string; on: boolean; onPress: () => void}> = ({la
   </Pressable>
 );
 
-const GapStepper: React.FC<{label: string; value: number; onChange: (v: number) => void}> = ({
+const OffsetStepper: React.FC<{label: string; value: number; disabled?: boolean; onChange: (v: number) => void}> = ({
   label,
   value,
+  disabled = false,
   onChange,
 }) => (
-  <View style={styles.gapRow}>
-    <View style={styles.gapLabelCell}>
-      <Text style={styles.gapLabel}>{label}</Text>
+  <View style={styles.offsetRow}>
+    <View style={styles.offsetLabelCell}>
+      <Text style={[styles.offsetLabel, disabled && styles.offsetLabelDisabled]}>{label}</Text>
     </View>
-    <View style={styles.gapStepper}>
-      <Pressable style={styles.stepperButton} onPress={() => onChange(value - GAP_STEP)}>
-        <Text style={styles.stepperButtonText}>−</Text>
+    <View style={styles.offsetStepper}>
+      <Pressable
+        style={[styles.stepperButton, disabled && styles.stepperButtonDisabled]}
+        onPress={disabled ? undefined : () => onChange(value - OFFSET_STEP)}>
+        <Text style={[styles.stepperButtonText, disabled && styles.stepperTextDisabled]}>−</Text>
       </Pressable>
-      <Text style={styles.stepperValue}>{value}</Text>
-      <Pressable style={styles.stepperButton} onPress={() => onChange(value + GAP_STEP)}>
-        <Text style={styles.stepperButtonText}>+</Text>
+      <Text style={[styles.stepperValue, disabled && styles.stepperTextDisabled]}>{value}</Text>
+      <Pressable
+        style={[styles.stepperButton, disabled && styles.stepperButtonDisabled]}
+        onPress={disabled ? undefined : () => onChange(value + OFFSET_STEP)}>
+        <Text style={[styles.stepperButtonText, disabled && styles.stepperTextDisabled]}>+</Text>
       </Pressable>
     </View>
-    <View style={styles.gapSpacerCell} />
+    <View style={styles.offsetSpacerCell} />
   </View>
 );
 
@@ -88,8 +93,18 @@ export const AlignmentPopup: React.FC<AlignmentPopupProps> = ({config, hasAnchor
           <Toggle label={t('axis.alignY')} on={config.alignY} onPress={callbacks.onToggleAlignY} />
         </View>
 
-        <GapStepper label={t('gap.x')} value={config.gapX} onChange={callbacks.onSetGapX} />
-        <GapStepper label={t('gap.y')} value={config.gapY} onChange={callbacks.onSetGapY} />
+        <OffsetStepper
+          label={t('offset.x')}
+          value={config.offsetX}
+          disabled={!config.alignX}
+          onChange={callbacks.onSetOffsetX}
+        />
+        <OffsetStepper
+          label={t('offset.y')}
+          value={config.offsetY}
+          disabled={!config.alignY}
+          onChange={callbacks.onSetOffsetY}
+        />
 
         {!hasAnchor ? <Text style={[styles.status, styles.statusEmpty]}>{t('status.noAnchor')}</Text> : null}
 

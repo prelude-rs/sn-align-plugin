@@ -19,8 +19,8 @@ export type StringId =
   | 'ref.center'
   | 'axis.alignX'
   | 'axis.alignY'
-  | 'gap.x'
-  | 'gap.y'
+  | 'offset.x'
+  | 'offset.y'
   | 'action.setAnchor'
   | 'action.setNewAnchor'
   | 'action.apply'
@@ -46,8 +46,8 @@ const STRINGS: Record<string, Partial<Record<StringId, string>>> = {
     'ref.center': 'Center',
     'axis.alignX': 'Align X',
     'axis.alignY': 'Align Y',
-    'gap.x': 'Gap X',
-    'gap.y': 'Gap Y',
+    'offset.x': 'Offset X',
+    'offset.y': 'Offset Y',
     'action.setAnchor': 'Set Anchor',
     'action.setNewAnchor': 'Set New Anchor',
     'action.apply': 'Apply Alignment',
@@ -72,8 +72,8 @@ const STRINGS: Record<string, Partial<Record<StringId, string>>> = {
     'ref.center': '中心',
     'axis.alignX': '对齐 X',
     'axis.alignY': '对齐 Y',
-    'gap.x': '间隔 X',
-    'gap.y': '间隔 Y',
+    'offset.x': '偏移 X',
+    'offset.y': '偏移 Y',
     'action.setAnchor': '设置锚点',
     'action.setNewAnchor': '更新锚点',
     'action.apply': '应用对齐',
@@ -98,8 +98,8 @@ const STRINGS: Record<string, Partial<Record<StringId, string>>> = {
     'ref.center': '中心',
     'axis.alignX': '對齊 X',
     'axis.alignY': '對齊 Y',
-    'gap.x': '間隔 X',
-    'gap.y': '間隔 Y',
+    'offset.x': '偏移 X',
+    'offset.y': '偏移 Y',
     'action.setAnchor': '設定錨點',
     'action.setNewAnchor': '更新錨點',
     'action.apply': '套用對齊',
@@ -124,8 +124,8 @@ const STRINGS: Record<string, Partial<Record<StringId, string>>> = {
     'ref.center': '中央',
     'axis.alignX': 'X 軸を揃える',
     'axis.alignY': 'Y 軸を揃える',
-    'gap.x': '間隔 X',
-    'gap.y': '間隔 Y',
+    'offset.x': 'オフセット X',
+    'offset.y': 'オフセット Y',
     'action.setAnchor': 'アンカー設定',
     'action.setNewAnchor': 'アンカー更新',
     'action.apply': '揃えを適用',
@@ -150,8 +150,8 @@ const STRINGS: Record<string, Partial<Record<StringId, string>>> = {
     'ref.center': 'กลาง',
     'axis.alignX': 'จัดแกน X',
     'axis.alignY': 'จัดแกน Y',
-    'gap.x': 'ระยะห่าง X',
-    'gap.y': 'ระยะห่าง Y',
+    'offset.x': 'ออฟเซ็ต X',
+    'offset.y': 'ออฟเซ็ต Y',
     'action.setAnchor': 'ตั้งจุดยึด',
     'action.setNewAnchor': 'ตั้งจุดยึดใหม่',
     'action.apply': 'ใช้การจัดตำแหน่ง',
@@ -176,8 +176,8 @@ const STRINGS: Record<string, Partial<Record<StringId, string>>> = {
     'ref.center': 'Midden',
     'axis.alignX': 'X uitlijnen',
     'axis.alignY': 'Y uitlijnen',
-    'gap.x': 'Afstand X',
-    'gap.y': 'Afstand Y',
+    'offset.x': 'Verschuiving X',
+    'offset.y': 'Verschuiving Y',
     'action.setAnchor': 'Anker instellen',
     'action.setNewAnchor': 'Nieuw anker',
     'action.apply': 'Uitlijning toepassen',
@@ -202,8 +202,8 @@ const STRINGS: Record<string, Partial<Record<StringId, string>>> = {
     'ref.center': 'Mitte',
     'axis.alignX': 'X ausrichten',
     'axis.alignY': 'Y ausrichten',
-    'gap.x': 'Abstand X',
-    'gap.y': 'Abstand Y',
+    'offset.x': 'Versatz X',
+    'offset.y': 'Versatz Y',
     'action.setAnchor': 'Anker setzen',
     'action.setNewAnchor': 'Anker neu setzen',
     'action.apply': 'Ausrichtung anwenden',

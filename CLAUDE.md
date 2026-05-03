@@ -1,6 +1,6 @@
 # SnAlign — Supernote alignment plugin
 
-A React Native plugin for the Supernote E-Ink tablet (`sn-plugin-lib`). The user picks a reference point on a saved "anchor" box and a reference point on the current lasso selection; the plugin translates the lasso so the two points coincide (with optional gaps and per-axis constraints), as long as the result fits inside the page.
+A React Native plugin for the Supernote E-Ink tablet (`sn-plugin-lib`). The user picks a reference point on a saved "anchor" box and a reference point on the current lasso selection; the plugin translates the lasso so the two points coincide (with optional per-axis offsets and per-axis align toggles), as long as the result fits inside the page.
 
 ## Model
 
@@ -13,10 +13,10 @@ type ReferencePoint =
 type AlignmentConfig = {
   anchorRef: ReferencePoint;   // which point on the anchor box
   targetRef: ReferencePoint;   // which point on the lasso box
-  constrainX: boolean;         // false = freeze X axis (no horizontal movement)
-  constrainY: boolean;         // false = freeze Y axis (no vertical movement)
-  gapX: number;                // firmware px; offsets the anchor point on X before shift
-  gapY: number;                // firmware px; same for Y
+  alignX: boolean;             // false = freeze X axis (no horizontal movement)
+  alignY: boolean;             // false = freeze Y axis (no vertical movement)
+  offsetX: number;             // firmware px; shifts the anchor point on X before the snap (signed; negative shifts left)
+  offsetY: number;             // firmware px; same for Y (negative shifts up)
 };
 
 type AnchorState = {config: AlignmentConfig; anchorBox: Rect | null};
@@ -30,7 +30,7 @@ A single lasso-toolbar button opens a popup containing everything.
 
 | Toolbar | Type | Button | id | showType | Behaviour |
 |---|---|---|---|---|---|
-| Lasso (NOTE) | 2 | Alignment | 201 | 1 (popup) | Two reference pickers + axis toggles + gap steppers + contextual action button (Save Anchor when none, Apply + Clear when set). Apply is greyed when the resulting rect would exit the page. |
+| Lasso (NOTE) | 2 | Alignment | 201 | 1 (popup) | Two reference pickers + axis toggles + offset steppers + contextual action button (Save Anchor when none, Apply + Clear when set). Apply is greyed when the resulting rect would exit the page. |
 
 There is no page-toolbar button. The 9-cell pickers (8 sides/corners + center) live side-by-side in the popup. `editDataTypes: [0,1,2,3,4,5]` covers strokes, titles, images, text-boxes, links, and geometry — without `5` the firmware greys the button for any selection containing a shape.
 
@@ -55,7 +55,7 @@ src/
     unwrap.ts             throw-on-failed APIResponse helper
   ui/
     ReferencePicker.tsx   reusable 9-cell grid (8 chevrons + center dot)
-    AlignmentPopup.tsx    full popup body: two pickers, axis toggles, gap steppers, action button
+    AlignmentPopup.tsx    full popup body: two pickers, axis toggles, offset steppers, action button
     PopupRoot.tsx         null-safe shell that mounts AlignmentPopup
     popupController.ts    state bus with replay-on-subscribe + updatePopup patch helper
     styles.ts
@@ -89,7 +89,7 @@ gh workflow run release.yml --ref main -f version=X.Y.Z                         
 - **Sync-first reentrancy release.** `release()` MUST run before any `await` in teardown. The firmware's `state:stop` can suspend the JS context mid-await and leave the busy flag stuck.
 - **PopupRoot never returns null.** Returning null caused the firmware to dismiss the overlay before our state update could re-render. Render a safe header + close button when `state.callbacks` is null.
 - **Subscribe replays state.** `popupController.subscribe(listener)` calls `listener(currentState)` immediately so a `show()` that fired before React mount isn't lost.
-- **Settings changes auto-persist.** Picker / toggle / gap callbacks save through `storage.setConfig` immediately; only Save / Apply / Clear / Close tear down the popup.
+- **Settings changes auto-persist.** Picker / toggle / offset callbacks save through `storage.setConfig` immediately; only Save / Apply / Clear / Close tear down the popup.
 - **Page bounds checked before Apply.** `resolvePageSize` queries firmware via `PluginCommAPI.getCurrentFilePath` + `getCurrentPageNum` + `PluginFileAPI.getPageSize`, falling back to 1920×2560 if any step fails. The popup pre-computes whether the next Apply would exit the page; `outOfBounds` flag drives the disabled state and the inline warning.
 - **One global button listener** in `index.js`, route by `event.id`.
 - **`closePluginView` lives on `PluginManager`**, not `PluginCommAPI`.
