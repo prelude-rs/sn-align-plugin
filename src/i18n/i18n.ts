@@ -24,10 +24,12 @@ export type StringId =
   | 'action.setAnchor'
   | 'action.setNewAnchor'
   | 'action.apply'
+  | 'action.applyAndReAnchor'
   | 'warning.outOfBounds'
   | 'warning.noLasso'
   | 'warning.noAxis'
-  | 'status.noAnchor'
+  | 'anchor.notSet'
+  | 'anchor.saved'
   | 'popup.close';
 
 const STRINGS: Record<string, Partial<Record<StringId, string>>> = {
@@ -51,10 +53,12 @@ const STRINGS: Record<string, Partial<Record<StringId, string>>> = {
     'action.setAnchor': 'Set Anchor',
     'action.setNewAnchor': 'Set New Anchor',
     'action.apply': 'Apply Alignment',
+    'action.applyAndReAnchor': 'Apply & Re-anchor',
     'warning.outOfBounds': 'Target would extend beyond the page',
     'warning.noLasso': 'Draw a lasso selection first',
     'warning.noAxis': 'Select at least one axis to align',
-    'status.noAnchor': 'No anchor saved yet',
+    'anchor.notSet': 'Anchor: not set',
+    'anchor.saved': 'Anchor: saved',
     'popup.close': 'Close',
   },
   zh_CN: {
@@ -77,10 +81,12 @@ const STRINGS: Record<string, Partial<Record<StringId, string>>> = {
     'action.setAnchor': '设置锚点',
     'action.setNewAnchor': '更新锚点',
     'action.apply': '应用对齐',
+    'action.applyAndReAnchor': '应用并更新锚点',
     'warning.outOfBounds': '目标将超出页面范围',
     'warning.noLasso': '请先框选内容',
     'warning.noAxis': '至少选择一个对齐轴',
-    'status.noAnchor': '尚未保存锚点',
+    'anchor.notSet': '锚点：未设置',
+    'anchor.saved': '锚点：已保存',
     'popup.close': '关闭',
   },
   zh_TW: {
@@ -103,10 +109,12 @@ const STRINGS: Record<string, Partial<Record<StringId, string>>> = {
     'action.setAnchor': '設定錨點',
     'action.setNewAnchor': '更新錨點',
     'action.apply': '套用對齊',
+    'action.applyAndReAnchor': '套用並更新錨點',
     'warning.outOfBounds': '目標將超出頁面範圍',
     'warning.noLasso': '請先框選內容',
     'warning.noAxis': '至少選擇一個對齊軸',
-    'status.noAnchor': '尚未儲存錨點',
+    'anchor.notSet': '錨點：未設定',
+    'anchor.saved': '錨點：已儲存',
     'popup.close': '關閉',
   },
   ja: {
@@ -129,10 +137,12 @@ const STRINGS: Record<string, Partial<Record<StringId, string>>> = {
     'action.setAnchor': 'アンカー設定',
     'action.setNewAnchor': 'アンカー更新',
     'action.apply': '揃えを適用',
+    'action.applyAndReAnchor': '適用してアンカー更新',
     'warning.outOfBounds': 'ページの範囲を超えます',
     'warning.noLasso': '先に投げ縄選択してください',
     'warning.noAxis': '少なくとも1軸を選択してください',
-    'status.noAnchor': 'アンカー未保存',
+    'anchor.notSet': 'アンカー：未設定',
+    'anchor.saved': 'アンカー：保存済み',
     'popup.close': '閉じる',
   },
   th: {
@@ -155,10 +165,12 @@ const STRINGS: Record<string, Partial<Record<StringId, string>>> = {
     'action.setAnchor': 'ตั้งจุดยึด',
     'action.setNewAnchor': 'ตั้งจุดยึดใหม่',
     'action.apply': 'ใช้การจัดตำแหน่ง',
+    'action.applyAndReAnchor': 'ใช้และตั้งจุดยึดใหม่',
     'warning.outOfBounds': 'เป้าหมายจะอยู่นอกหน้ากระดาษ',
     'warning.noLasso': 'กรุณาเลือกพื้นที่ก่อน',
     'warning.noAxis': 'เลือกอย่างน้อยหนึ่งแกน',
-    'status.noAnchor': 'ยังไม่ได้บันทึกจุดยึด',
+    'anchor.notSet': 'จุดยึด: ยังไม่ตั้ง',
+    'anchor.saved': 'จุดยึด: บันทึกแล้ว',
     'popup.close': 'ปิด',
   },
   nl: {
@@ -181,10 +193,12 @@ const STRINGS: Record<string, Partial<Record<StringId, string>>> = {
     'action.setAnchor': 'Anker instellen',
     'action.setNewAnchor': 'Nieuw anker',
     'action.apply': 'Uitlijning toepassen',
+    'action.applyAndReAnchor': 'Toepassen & nieuw anker',
     'warning.outOfBounds': 'Doel valt buiten de pagina',
     'warning.noLasso': 'Maak eerst een lasso-selectie',
     'warning.noAxis': 'Selecteer ten minste één as',
-    'status.noAnchor': 'Nog geen anker opgeslagen',
+    'anchor.notSet': 'Anker: niet ingesteld',
+    'anchor.saved': 'Anker: opgeslagen',
     'popup.close': 'Sluiten',
   },
   de: {
@@ -207,10 +221,12 @@ const STRINGS: Record<string, Partial<Record<StringId, string>>> = {
     'action.setAnchor': 'Anker setzen',
     'action.setNewAnchor': 'Anker neu setzen',
     'action.apply': 'Ausrichtung anwenden',
+    'action.applyAndReAnchor': 'Anwenden & neu verankern',
     'warning.outOfBounds': 'Ziel würde über die Seite hinausragen',
     'warning.noLasso': 'Erst eine Lasso-Auswahl zeichnen',
     'warning.noAxis': 'Mindestens eine Achse auswählen',
-    'status.noAnchor': 'Kein Anker gespeichert',
+    'anchor.notSet': 'Anker: nicht gesetzt',
+    'anchor.saved': 'Anker: gespeichert',
     'popup.close': 'Schließen',
   },
 };

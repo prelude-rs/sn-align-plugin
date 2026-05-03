@@ -27,10 +27,12 @@ const ALL_IDS: StringId[] = [
   'action.setAnchor',
   'action.setNewAnchor',
   'action.apply',
+  'action.applyAndReAnchor',
   'warning.outOfBounds',
   'warning.noLasso',
   'warning.noAxis',
-  'status.noAnchor',
+  'anchor.notSet',
+  'anchor.saved',
   'popup.close',
 ];
 

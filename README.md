@@ -26,24 +26,29 @@ A single **Alignment** button appears on the lasso toolbar (the one that pops up
 ### 1. Save an anchor
 
 1. Lasso the rectangle you want to use as the reference (strokes, text, images, shapes, or a mix).
-2. Tap **Alignment** → **Set Anchor**. The popup closes.
+2. Tap **Alignment**. On first run the popup is minimal: just a status line and a **Set Anchor** button. Tap it.
 
-The bounding box of that lasso is now your anchor.
+The bounding box of that lasso is now your anchor. From now on the popup opens with the full layout controls.
 
 ### 2. Apply alignment to a new selection
 
 1. Lasso another piece of content.
 2. Tap **Alignment**. The popup opens.
 3. In the popup:
+   - The top row shows the saved anchor status and a **Set New Anchor** button (tap to overwrite the anchor with your current lasso).
    - **Anchor** picker (left) — pick which point on the anchor to use (any corner, any edge mid-point, or the center).
    - **Target** picker (right) — pick which point on the _current_ lasso to align to that anchor point.
    - **Align X / Align Y** toggles — turn one off to keep that axis untouched. With both on, the target snaps to both axes.
-   - **Offset X / Offset Y** steppers — shift the target along each axis after the snap. Positive values move the target right / down; negative values move it left / up. ±10 per tap.
+   - **Offset X / Offset Y** steppers — shift the target along each axis after the snap. Positive values move the target right / down; negative values move it left / up. ±10 per tap. The stepper greys out when its axis is off.
 4. Tap **Apply Alignment**. The lasso slides into place. The move is undoable with the device's standard undo.
 
-### Replace the anchor
+### Chain alignments with Apply & Re-anchor
 
-When an anchor is set, the popup also shows **Set New Anchor** — tap it to overwrite the current anchor with the bounding box of your live lasso.
+Next to **Apply Alignment** there's **Apply & Re-anchor** — same translation, but the new (moved) lasso bbox is also saved as the anchor. Use it to chain steps without re-selecting:
+
+1. Lasso item 1, tap **Set Anchor**.
+2. Lasso item 2, tap **Apply & Re-anchor** (it snaps under item 1 with whatever offset you chose, and item 2 becomes the new anchor).
+3. Lasso item 3, tap **Apply & Re-anchor** again — it snaps under item 2 with the same configuration. Repeat to build rows or stacks.
 
 ## Examples
 
@@ -54,6 +59,7 @@ When an anchor is set, the popup also shows **Set New Anchor** — tap it to ove
 | Stack target directly below anchor, both centered | Bottom / Top              | Align X + Y  |
 | Place target to the right of anchor with a gap    | Right / Left + Offset X = 20 | Align X + Y  |
 | Center target inside anchor                       | Center / Center           | Align X + Y  |
+| Stack three notes vertically with 20px between    | Bottom / Top + Offset Y = 20 | Align X + Y (use Apply & Re-anchor between steps) |
 
 ## What works
 

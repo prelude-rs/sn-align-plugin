@@ -148,6 +148,41 @@ describe('onLassoMain — popup callbacks', () => {
     expect(setLassoBoxState).toHaveBeenCalledWith(2);
   });
 
+  it('onApplyAndReAnchor translates the lasso AND saves the translated rect as new anchor', async () => {
+    const anchored: AnchorState = {
+      config: {...DEFAULT_ALIGNMENT_CONFIG, anchorRef: 'top-left', targetRef: 'top-left'},
+      anchorBox: {left: 100, top: 200, right: 300, bottom: 400},
+    };
+    const lasso: Rect = {left: 500, top: 600, right: 600, bottom: 650};
+    const {deps, storage, resizeLassoRect, setLassoBoxState} = buildDeps(anchored, lasso);
+    await onLassoMain(deps);
+    const cbs = getCurrentState().callbacks!;
+    cbs.onApplyAndReAnchor();
+    await new Promise(r => setTimeout(r, 0));
+    const expectedNewRect = {left: 100, top: 200, right: 200, bottom: 250};
+    expect(resizeLassoRect).toHaveBeenCalledWith(expectedNewRect);
+    expect(setLassoBoxState).toHaveBeenCalledWith(2);
+    expect((await storage.load()).anchorBox).toEqual(expectedNewRect);
+  });
+
+  it('onApplyAndReAnchor does NOT update the anchor when target would exit page', async () => {
+    const originalAnchor = {left: 1900, top: 100, right: 1910, bottom: 200};
+    const anchored: AnchorState = {
+      config: {...DEFAULT_ALIGNMENT_CONFIG, anchorRef: 'right', targetRef: 'left'},
+      anchorBox: originalAnchor,
+    };
+    const lasso: Rect = {left: 0, top: 0, right: 100, bottom: 50};
+    const {deps, storage, resizeLassoRect} = buildDeps(anchored, lasso);
+    await onLassoMain(deps);
+    const cbs = getCurrentState().callbacks!;
+    cbs.onApplyAndReAnchor();
+    await new Promise(r => setTimeout(r, 0));
+    expect(resizeLassoRect).not.toHaveBeenCalled();
+    // Anchor unchanged on rejected re-anchor — chaining off a failed step
+    // would silently corrupt the saved anchor.
+    expect((await storage.load()).anchorBox).toEqual(originalAnchor);
+  });
+
   it('onApply skips resize when target would exit page (still releases on teardown)', async () => {
     const anchored: AnchorState = {
       config: {...DEFAULT_ALIGNMENT_CONFIG, anchorRef: 'right', targetRef: 'left'},

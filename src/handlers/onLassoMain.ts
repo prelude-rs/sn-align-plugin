@@ -148,6 +148,55 @@ export const onLassoMain = async (deps: LassoDeps): Promise<LassoOutcome> => {
   const onPatchError = (label: string) => (e: unknown) =>
     deps.logger.warn(`[align:lasso] ${label} failed: ${(e as Error).message}`);
 
+  // Shared body for Apply and Apply & Re-anchor. The re-anchor variant
+  // saves the translated rect as the new anchor box on success, so the
+  // user can chain Apply & Re-anchor steps to stack/row content. If the
+  // resize call fails we skip the re-anchor — chaining off a failed
+  // step would silently corrupt the anchor.
+  const performApply = async (alsoReAnchor: boolean): Promise<void> => {
+    const label = alsoReAnchor ? 'apply+reanchor' : 'apply';
+    try {
+      if (!anchorBox) {
+        deps.logger.warn(`[align:lasso] ${label}: no anchor saved`);
+        return;
+      }
+      if (!lasso) {
+        deps.logger.warn(`[align:lasso] ${label}: no lasso selection`);
+        return;
+      }
+      const {dx, dy} = computeAnchorShift(anchorBox, lasso, cfg);
+      const newRect = translateRect(lasso, dx, dy);
+      if (!fitsInPage(newRect, page)) {
+        deps.logger.warn(
+          `[align:lasso] ${label} rejected: ${JSON.stringify(newRect)} exits page ${JSON.stringify(page)}`,
+        );
+        return;
+      }
+      if (dx === 0 && dy === 0) {
+        deps.logger.log(`[align:lasso] ${label}: already aligned (noop)`);
+      } else {
+        deps.logger.log(
+          `[align:lasso] resize lasso (dx=${dx}, dy=${dy}) ${JSON.stringify(lasso)} -> ${JSON.stringify(newRect)}`,
+        );
+        const res = await deps.comm.resizeLassoRect(newRect);
+        if (!res || !res.success) {
+          deps.logger.warn(`[align:lasso] resizeLassoRect failed: ${res?.error?.message ?? 'no error'}`);
+          return;
+        }
+      }
+      if (alsoReAnchor) {
+        await deps.storage.setAnchorBox(newRect);
+        deps.logger.log(`[align:lasso] re-anchor box=${JSON.stringify(newRect)}`);
+      }
+    } catch (e) {
+      deps.logger.error(`[align:lasso] ${label} crashed: ${(e as Error).message}`);
+    } finally {
+      // teardown calls setLassoBoxState(2) which commits the pending
+      // resizeLassoRect (firmware semantics) and supports native undo.
+      await teardown(deps);
+    }
+  };
+
   const callbacks: AlignmentPopupCallbacks = {
     onSetAnchorRef: (ref: ReferencePoint) => {
       patchConfig({anchorRef: ref}).catch(onPatchError('setAnchorRef'));
@@ -186,44 +235,12 @@ export const onLassoMain = async (deps: LassoDeps): Promise<LassoOutcome> => {
       });
     },
     onApply: () => {
-      (async () => {
-        try {
-          if (!anchorBox) {
-            deps.logger.warn('[align:lasso] apply: no anchor saved');
-            return;
-          }
-          if (!lasso) {
-            deps.logger.warn('[align:lasso] apply: no lasso selection');
-            return;
-          }
-          const {dx, dy} = computeAnchorShift(anchorBox, lasso, cfg);
-          if (dx === 0 && dy === 0) {
-            deps.logger.log('[align:lasso] apply: already aligned (noop)');
-            return;
-          }
-          const newRect = translateRect(lasso, dx, dy);
-          if (!fitsInPage(newRect, page)) {
-            deps.logger.warn(
-              `[align:lasso] apply rejected: ${JSON.stringify(newRect)} exits page ${JSON.stringify(page)}`,
-            );
-            return;
-          }
-          deps.logger.log(
-            `[align:lasso] resize lasso (dx=${dx}, dy=${dy}) ${JSON.stringify(lasso)} -> ${JSON.stringify(newRect)}`,
-          );
-          const res = await deps.comm.resizeLassoRect(newRect);
-          if (!res || !res.success) {
-            deps.logger.warn(`[align:lasso] resizeLassoRect failed: ${res?.error?.message ?? 'no error'}`);
-          }
-        } catch (e) {
-          deps.logger.error(`[align:lasso] apply crashed: ${(e as Error).message}`);
-        } finally {
-          // teardown calls setLassoBoxState(2) which commits the
-          // pending resizeLassoRect (firmware semantics) and supports
-          // native undo.
-          await teardown(deps);
-        }
-      })().catch(() => {
+      performApply(false).catch(() => {
+        /* logged inside */
+      });
+    },
+    onApplyAndReAnchor: () => {
+      performApply(true).catch(() => {
         /* logged inside */
       });
     },
