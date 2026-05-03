@@ -2,8 +2,8 @@
   "name": "{\"en\":\"Align\",\"zh_CN\":\"对齐\",\"zh_TW\":\"對齊\",\"ja\":\"揃える\",\"th\":\"จัดตำแหน่ง\",\"nl\":\"Uitlijnen\",\"de\":\"Ausrichten\"}",
   "desc": "Save a lasso selection's edge or corner as an anchor, then snap later selections to align to that anchor.",
   "iconPath": "assets/icon.png",
-  "versionName": "0.2.1",
-  "versionCode": "210",
+  "versionName": "0.3.0",
+  "versionCode": "300",
   "pluginID": "snplgalignv1",
   "pluginKey": "SnAlign",
   "jsMainPath": "index"
