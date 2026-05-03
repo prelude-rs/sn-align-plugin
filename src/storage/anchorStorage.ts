@@ -1,5 +1,5 @@
 // Persistence for the alignment state — both the AlignmentConfig
-// (anchor + target reference points, axis toggles, gaps) and the
+// (anchor + target reference points, axis toggles, offsets) and the
 // optional anchorBox. The two pieces are orthogonal (the user can
 // tweak config without disturbing the anchor) but share an envelope
 // so a single load returns the full state.

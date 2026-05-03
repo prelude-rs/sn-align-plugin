@@ -92,15 +92,15 @@ describe('computeAnchorShift', () => {
     ).toEqual({dx: 100 - 500, dy: 0});
   });
 
-  it('gapX shifts the anchor point rightward before computing dx', () => {
-    expect(computeAnchorShift(anchor, sel, cfg({anchorRef: 'right', targetRef: 'left', gapX: 25}))).toEqual({
+  it('offsetX shifts the anchor point rightward before computing dx', () => {
+    expect(computeAnchorShift(anchor, sel, cfg({anchorRef: 'right', targetRef: 'left', offsetX: 25}))).toEqual({
       dx: 300 + 25 - 500,
       dy: 300 - 625,
     });
   });
 
-  it('gapY shifts the anchor point downward before computing dy', () => {
-    expect(computeAnchorShift(anchor, sel, cfg({anchorRef: 'bottom', targetRef: 'top', gapY: 50}))).toEqual({
+  it('offsetY shifts the anchor point downward before computing dy', () => {
+    expect(computeAnchorShift(anchor, sel, cfg({anchorRef: 'bottom', targetRef: 'top', offsetY: 50}))).toEqual({
       dx: 200 - 550,
       dy: 400 + 50 - 600,
     });
@@ -168,8 +168,8 @@ describe('isAlignmentConfig', () => {
         targetRef: 'left',
         alignX: true,
         alignY: true,
-        gapX: 0,
-        gapY: 0,
+        offsetX: 0,
+        offsetY: 0,
       }),
     ).toBe(false);
   });
@@ -181,21 +181,21 @@ describe('isAlignmentConfig', () => {
         targetRef: 'left',
         alignX: 'yes',
         alignY: true,
-        gapX: 0,
-        gapY: 0,
+        offsetX: 0,
+        offsetY: 0,
       }),
     ).toBe(false);
   });
 
-  it('rejects non-numeric gaps', () => {
+  it('rejects non-numeric offsets', () => {
     expect(
       isAlignmentConfig({
         anchorRef: 'left',
         targetRef: 'left',
         alignX: true,
         alignY: true,
-        gapX: '10',
-        gapY: 0,
+        offsetX: '10',
+        offsetY: 0,
       }),
     ).toBe(false);
   });

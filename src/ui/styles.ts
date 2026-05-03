@@ -1,6 +1,6 @@
 import {StyleSheet} from 'react-native';
 
-// Single popup with both reference pickers, axis toggles, gap
+// Single popup with both reference pickers, axis toggles, offset
 // steppers, status, and contextual action buttons. E-ink palette:
 // black ink, white background, thick borders.
 
@@ -55,6 +55,66 @@ export const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     color: '#000000',
+  },
+
+  // Top anchor row — status text on the left, Set / Set New Anchor
+  // button on the right. Separates anchor management from the layout
+  // controls below.
+  anchorRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingBottom: 12,
+    marginBottom: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#000000',
+  },
+  anchorRowStatus: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000000',
+  },
+  anchorRowStatusEmpty: {
+    color: '#666666',
+    fontStyle: 'italic',
+  },
+  anchorInlineButton: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderWidth: 2,
+    borderColor: '#000000',
+    borderRadius: 6,
+    backgroundColor: '#ffffff',
+  },
+  anchorInlineButtonDisabled: {
+    borderColor: '#999999',
+    backgroundColor: '#eeeeee',
+  },
+  anchorInlineButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#000000',
+  },
+  anchorInlineButtonTextDisabled: {
+    color: '#999999',
+  },
+
+  // Minimal first-run body (no anchor saved): centered status + a
+  // large primary Set Anchor button.
+  minimalBody: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 28,
+  },
+  minimalStatus: {
+    fontSize: 18,
+    color: '#666666',
+    fontStyle: 'italic',
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  minimalWarning: {
+    marginTop: 16,
   },
 
   // Two reference pickers side by side.
@@ -118,30 +178,33 @@ export const styles = StyleSheet.create({
     color: '#000000',
   },
 
-  // Gap stepper row — fixed-width label and spacer cells flank the
+  // Offset stepper row — fixed-width label and spacer cells flank the
   // stepper so the stepper is geometrically centered in the dialog
   // (label cell width === spacer cell width). justifyContent:'center'
   // floats the whole label+stepper+spacer group in the row.
-  gapRow: {
+  offsetRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8,
   },
-  gapLabelCell: {
+  offsetLabelCell: {
     width: 90,
     alignItems: 'flex-end',
     paddingRight: 12,
   },
-  gapSpacerCell: {
+  offsetSpacerCell: {
     width: 90,
   },
-  gapLabel: {
+  offsetLabel: {
     fontSize: 16,
     fontWeight: '600',
     color: '#000000',
   },
-  gapStepper: {
+  offsetLabelDisabled: {
+    color: '#999999',
+  },
+  offsetStepper: {
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -154,6 +217,10 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  stepperButtonDisabled: {
+    borderColor: '#999999',
+    backgroundColor: '#eeeeee',
+  },
   stepperButtonText: {
     fontSize: 22,
     fontWeight: '700',
@@ -165,6 +232,9 @@ export const styles = StyleSheet.create({
     color: '#000000',
     width: 80,
     textAlign: 'center',
+  },
+  stepperTextDisabled: {
+    color: '#999999',
   },
 
   // Status / warning text.

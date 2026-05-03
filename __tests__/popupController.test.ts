@@ -10,10 +10,11 @@ const stubCallbacks = (): AlignmentPopupCallbacks => ({
   onSetTargetRef: noop,
   onToggleAlignX: noop,
   onToggleAlignY: noop,
-  onSetGapX: noop,
-  onSetGapY: noop,
+  onSetOffsetX: noop,
+  onSetOffsetY: noop,
   onSetAnchor: noop,
   onApply: noop,
+  onApplyAndReAnchor: noop,
   onClose: noop,
 });
 

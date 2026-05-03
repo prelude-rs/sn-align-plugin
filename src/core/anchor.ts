@@ -1,8 +1,8 @@
 // Two-point alignment math. The user picks a reference point on the
 // anchor box and a reference point on the target (lasso) box, plus
-// optional per-axis constraints and gaps. The translation lands the
-// target's reference point on the anchor's reference point (modulo
-// gaps and axis toggles).
+// optional per-axis constraints and post-snap offsets. The translation
+// lands the target's reference point on the anchor's reference point
+// (modulo offsets and axis toggles).
 //
 // Reference points are 9: the 4 corners, the 4 mid-sides, and the
 // geometric center. Each maps to a 2D point on a Rect; corners pick
@@ -11,9 +11,10 @@
 //
 // Axis toggles: when alignX is false, dx = 0 (target keeps its
 // X). Same for alignY. Default is both ON, giving full 2D snap.
-// Gaps offset the anchor point before the shift is computed, so a
-// positive gapX pushes the target rightward of where it would
-// otherwise land.
+// Offsets shift the anchor point along each axis before the
+// translation is computed, so a positive offsetX pushes the target
+// rightward of where it would otherwise land; negative values shift
+// it leftward.
 
 export type Rect = {left: number; top: number; right: number; bottom: number};
 
@@ -45,8 +46,8 @@ export type AlignmentConfig = {
   readonly targetRef: ReferencePoint;
   readonly alignX: boolean;
   readonly alignY: boolean;
-  readonly gapX: number;
-  readonly gapY: number;
+  readonly offsetX: number;
+  readonly offsetY: number;
 };
 
 export const DEFAULT_ALIGNMENT_CONFIG: AlignmentConfig = {
@@ -54,8 +55,8 @@ export const DEFAULT_ALIGNMENT_CONFIG: AlignmentConfig = {
   targetRef: 'left',
   alignX: true,
   alignY: true,
-  gapX: 0,
-  gapY: 0,
+  offsetX: 0,
+  offsetY: 0,
 };
 
 export type Point = {x: number; y: number};
@@ -80,8 +81,8 @@ export const computeAnchorShift = (
 ): {dx: number; dy: number} => {
   const aP = pointOnBox(anchorBox, config.anchorRef);
   const tP = pointOnBox(currentBbox, config.targetRef);
-  const dx = config.alignX ? aP.x + config.gapX - tP.x : 0;
-  const dy = config.alignY ? aP.y + config.gapY - tP.y : 0;
+  const dx = config.alignX ? aP.x + config.offsetX - tP.x : 0;
+  const dy = config.alignY ? aP.y + config.offsetY - tP.y : 0;
   return {dx, dy};
 };
 
@@ -118,7 +119,7 @@ export const isAlignmentConfig = (v: unknown): v is AlignmentConfig => {
     isReferencePoint(c.targetRef) &&
     typeof c.alignX === 'boolean' &&
     typeof c.alignY === 'boolean' &&
-    typeof c.gapX === 'number' &&
-    typeof c.gapY === 'number'
+    typeof c.offsetX === 'number' &&
+    typeof c.offsetY === 'number'
   );
 };
