@@ -14,6 +14,7 @@ export type AlignmentPopupCallbacks = {
   onSetOffsetY: (value: number) => void;
   onSetAnchor: () => void;
   onApply: () => void;
+  onApplyAndReAnchor: () => void;
   onClose: () => void;
 };
 
@@ -61,21 +62,67 @@ const OffsetStepper: React.FC<{label: string; value: number; disabled?: boolean;
   </View>
 );
 
+const Header: React.FC<{onClose: () => void}> = ({onClose}) => (
+  <View style={styles.header}>
+    <Text style={styles.headerTitle}>{t('dialog.title')}</Text>
+    <Pressable style={styles.closeButton} onPress={onClose}>
+      <Text style={styles.closeText}>{t('popup.close')}</Text>
+    </Pressable>
+  </View>
+);
+
+const AnchorTopRow: React.FC<{noLasso: boolean; onSetNewAnchor: () => void}> = ({noLasso, onSetNewAnchor}) => (
+  <View style={styles.anchorRow}>
+    <Text style={styles.anchorRowStatus}>{t('anchor.saved')} ✓</Text>
+    <Pressable
+      style={[styles.anchorInlineButton, noLasso && styles.anchorInlineButtonDisabled]}
+      onPress={noLasso ? undefined : onSetNewAnchor}>
+      <Text style={[styles.anchorInlineButtonText, noLasso && styles.anchorInlineButtonTextDisabled]}>
+        {t('action.setNewAnchor')}
+      </Text>
+    </Pressable>
+  </View>
+);
+
+const MinimalBody: React.FC<{noLasso: boolean; onSetAnchor: () => void}> = ({noLasso, onSetAnchor}) => (
+  <View style={styles.minimalBody}>
+    <Text style={styles.minimalStatus}>{t('anchor.notSet')}</Text>
+    <Pressable
+      style={[styles.actionButton, styles.actionButtonPrimary, noLasso && styles.actionButtonDisabled]}
+      onPress={noLasso ? undefined : onSetAnchor}>
+      <Text
+        style={[
+          styles.actionButtonText,
+          !noLasso && styles.actionButtonTextPrimary,
+          noLasso && styles.actionButtonTextDisabled,
+        ]}>
+        {t('action.setAnchor')}
+      </Text>
+    </Pressable>
+    {noLasso ? <Text style={[styles.warning, styles.minimalWarning]}>{t('warning.noLasso')}</Text> : null}
+  </View>
+);
+
 export const AlignmentPopup: React.FC<AlignmentPopupProps> = ({config, hasAnchor, outOfBounds, noLasso, callbacks}) => {
   const noAxis = !config.alignX && !config.alignY;
   const applyDisabled = !hasAnchor || outOfBounds || noLasso || noAxis;
-  const setAnchorDisabled = noLasso;
-  const setAnchorLabel = hasAnchor ? t('action.setNewAnchor') : t('action.setAnchor');
+
+  if (!hasAnchor) {
+    return (
+      <View style={styles.backdrop}>
+        <View style={styles.card}>
+          <Header onClose={callbacks.onClose} />
+          <MinimalBody noLasso={noLasso} onSetAnchor={callbacks.onSetAnchor} />
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.backdrop}>
       <View style={styles.card}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>{t('dialog.title')}</Text>
-          <Pressable style={styles.closeButton} onPress={callbacks.onClose}>
-            <Text style={styles.closeText}>{t('popup.close')}</Text>
-          </Pressable>
-        </View>
+        <Header onClose={callbacks.onClose} />
+        <AnchorTopRow noLasso={noLasso} onSetNewAnchor={callbacks.onSetAnchor} />
 
         <View style={styles.pickersRow}>
           <View style={styles.pickerColumn}>
@@ -106,43 +153,30 @@ export const AlignmentPopup: React.FC<AlignmentPopupProps> = ({config, hasAnchor
           onChange={callbacks.onSetOffsetY}
         />
 
-        {!hasAnchor ? <Text style={[styles.status, styles.statusEmpty]}>{t('status.noAnchor')}</Text> : null}
-
         {/* Always rendered so the popup doesn't shift when a warning toggles
             on/off. Non-breaking space holds the line height when empty. */}
         <Text style={styles.warning}>
-          {noLasso ? t('warning.noLasso') : noAxis ? t('warning.noAxis') : outOfBounds ? t('warning.outOfBounds') : ' '}
+          {noLasso ? t('warning.noLasso') : noAxis ? t('warning.noAxis') : outOfBounds ? t('warning.outOfBounds') : ' '}
         </Text>
 
         <View style={styles.actionRow}>
-          {hasAnchor ? (
-            <Pressable
-              style={[styles.actionButton, styles.actionButtonPrimary, applyDisabled && styles.actionButtonDisabled]}
-              onPress={applyDisabled ? undefined : callbacks.onApply}>
-              <Text
-                style={[
-                  styles.actionButtonText,
-                  !applyDisabled && styles.actionButtonTextPrimary,
-                  applyDisabled && styles.actionButtonTextDisabled,
-                ]}>
-                {t('action.apply')}
-              </Text>
-            </Pressable>
-          ) : null}
           <Pressable
-            style={[
-              styles.actionButton,
-              !hasAnchor && styles.actionButtonPrimary,
-              setAnchorDisabled && styles.actionButtonDisabled,
-            ]}
-            onPress={setAnchorDisabled ? undefined : callbacks.onSetAnchor}>
+            style={[styles.actionButton, styles.actionButtonPrimary, applyDisabled && styles.actionButtonDisabled]}
+            onPress={applyDisabled ? undefined : callbacks.onApply}>
             <Text
               style={[
                 styles.actionButtonText,
-                !hasAnchor && !setAnchorDisabled && styles.actionButtonTextPrimary,
-                setAnchorDisabled && styles.actionButtonTextDisabled,
+                !applyDisabled && styles.actionButtonTextPrimary,
+                applyDisabled && styles.actionButtonTextDisabled,
               ]}>
-              {setAnchorLabel}
+              {t('action.apply')}
+            </Text>
+          </Pressable>
+          <Pressable
+            style={[styles.actionButton, applyDisabled && styles.actionButtonDisabled]}
+            onPress={applyDisabled ? undefined : callbacks.onApplyAndReAnchor}>
+            <Text style={[styles.actionButtonText, applyDisabled && styles.actionButtonTextDisabled]}>
+              {t('action.applyAndReAnchor')}
             </Text>
           </Pressable>
         </View>

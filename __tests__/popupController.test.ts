@@ -14,6 +14,7 @@ const stubCallbacks = (): AlignmentPopupCallbacks => ({
   onSetOffsetY: noop,
   onSetAnchor: noop,
   onApply: noop,
+  onApplyAndReAnchor: noop,
   onClose: noop,
 });
 

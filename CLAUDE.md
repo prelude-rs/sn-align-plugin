@@ -30,7 +30,7 @@ A single lasso-toolbar button opens a popup containing everything.
 
 | Toolbar | Type | Button | id | showType | Behaviour |
 |---|---|---|---|---|---|
-| Lasso (NOTE) | 2 | Alignment | 201 | 1 (popup) | Two reference pickers + axis toggles + offset steppers + contextual action button (Save Anchor when none, Apply + Clear when set). Apply is greyed when the resulting rect would exit the page. |
+| Lasso (NOTE) | 2 | Alignment | 201 | 1 (popup) | First open with no anchor: minimal layout — header + status + primary **Set Anchor** button only. With anchor saved: top row holds status + **Set New Anchor** button; below sit the two reference pickers, axis toggles, offset steppers, warning slot, and a bottom action row with **Apply Alignment** (primary) + **Apply & Re-anchor** (secondary; saves the translated rect as the new anchor for chaining). Apply-family buttons grey out together when the resulting rect would exit the page or no axis is enabled. |
 
 There is no page-toolbar button. The 9-cell pickers (8 sides/corners + center) live side-by-side in the popup. `editDataTypes: [0,1,2,3,4,5]` covers strokes, titles, images, text-boxes, links, and geometry — without `5` the firmware greys the button for any selection containing a shape.
 

@@ -57,6 +57,66 @@ export const styles = StyleSheet.create({
     color: '#000000',
   },
 
+  // Top anchor row — status text on the left, Set / Set New Anchor
+  // button on the right. Separates anchor management from the layout
+  // controls below.
+  anchorRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingBottom: 12,
+    marginBottom: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#000000',
+  },
+  anchorRowStatus: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000000',
+  },
+  anchorRowStatusEmpty: {
+    color: '#666666',
+    fontStyle: 'italic',
+  },
+  anchorInlineButton: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderWidth: 2,
+    borderColor: '#000000',
+    borderRadius: 6,
+    backgroundColor: '#ffffff',
+  },
+  anchorInlineButtonDisabled: {
+    borderColor: '#999999',
+    backgroundColor: '#eeeeee',
+  },
+  anchorInlineButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#000000',
+  },
+  anchorInlineButtonTextDisabled: {
+    color: '#999999',
+  },
+
+  // Minimal first-run body (no anchor saved): centered status + a
+  // large primary Set Anchor button.
+  minimalBody: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 28,
+  },
+  minimalStatus: {
+    fontSize: 18,
+    color: '#666666',
+    fontStyle: 'italic',
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  minimalWarning: {
+    marginTop: 16,
+  },
+
   // Two reference pickers side by side.
   pickersRow: {
     flexDirection: 'row',
