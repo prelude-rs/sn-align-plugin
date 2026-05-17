@@ -38,7 +38,7 @@ These are load-bearing: the `APIResponse<T>` envelope in `src/sdk/types.ts` and 
 **Core:**
 - React 19.0.0 — UI tree mounted via `AppRegistry.registerComponent` in `index.js`.
 - React Native 0.79.2 — JSX components (`View`, `Text`, `Pressable`, `StyleSheet`). No native modules outside `sn-plugin-lib`.
-- sn-plugin-lib `^0.1.19` (resolved 0.1.34 in `node_modules`) — Supernote plugin framework providing `PluginManager`, `PluginCommAPI`, `PluginFileAPI`. See `INTEGRATIONS.md` for method-level usage.
+- sn-plugin-lib `^0.1.43` (resolved 0.1.43 in `node_modules`) — Supernote plugin framework providing `PluginManager`, `PluginCommAPI`, `PluginFileAPI`. See `INTEGRATIONS.md` for method-level usage.
 
 **Testing:**
 - Jest `^29.6.3` with preset `react-native` (`jest.config.js`).
@@ -57,7 +57,7 @@ These are load-bearing: the `APIResponse<T>` envelope in `src/sdk/types.ts` and 
 ## Key Dependencies
 
 **Critical (runtime):**
-- `sn-plugin-lib` ^0.1.19 — only native bridge to the Supernote firmware. All UI affordances and lasso operations are routed through it.
+- `sn-plugin-lib` ^0.1.43 — only native bridge to the Supernote firmware. All UI affordances and lasso operations are routed through it.
 - `react` 19.0.0 / `react-native` 0.79.2 — the popup UI (`src/ui/`) is plain RN; no animation libs, no gesture handler, no navigation.
 
 **Notably absent:**
