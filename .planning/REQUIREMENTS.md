@@ -36,6 +36,14 @@ Deferred to future milestone after this code-ready set lands and sideloads clean
 
 - **RELEASE-01**: Cut v0.4.0 tag — bump `package.json` + `PluginConfig.json`, run `release.yml`, publish GitHub Release with `.snplg`. Triggered by user once sideload-test passes.
 
+### Dev toolchain refresh
+
+- **TOOLCHAIN-01**: TypeScript 5.9 → 6.x audit + bump. Run a Phase-1-style audit pattern (ghost-bump on scratch, capture tsc + jest evidence, classify changes against `tsconfig.json` strict flags) before adopting.
+- **TOOLCHAIN-02**: Jest 29 → 30 audit + bump (includes `@types/jest`). Phase-1-style audit. Jest 30 has config / migration changes; mocks may need updating.
+- **TOOLCHAIN-03**: ESLint 8 → 10 (two majors) audit + bump. Flat-config migration + rule renames; high churn risk for `.eslintrc.js`-driven projects like SnAlign.
+- **TOOLCHAIN-04**: `@react-native-community/cli` 18 → 20 bump. Dev-tool only; lower risk than the others but still cross-version.
+- Surfaced by Phase 2 `npm outdated` investigation (2026-05-17). User opted to capture as a future milestone rather than fold into Phase 2's `sn-plugin-lib`-focused scope.
+
 ## Out of Scope
 
 | Feature | Reason |
