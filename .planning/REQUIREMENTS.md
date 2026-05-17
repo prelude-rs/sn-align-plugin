@@ -49,28 +49,26 @@ Deferred to future milestone after this code-ready set lands and sideloads clean
 
 ## Traceability
 
-Will be populated by the roadmapper. Empty for now.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| UPGRADE-01 | TBD | Pending |
-| UPGRADE-02 | TBD | Pending |
-| UPGRADE-03 | TBD | Pending |
-| UPGRADE-04 | TBD | Pending |
-| UPGRADE-05 | TBD | Pending |
-| ADOPT-01 | TBD | Pending |
-| ADOPT-02 | TBD | Pending |
-| SKILL-01 | TBD | Pending |
-| SKILL-02 | TBD | Pending |
-| SKILL-03 | TBD | Pending |
-| SKILL-04 | TBD | Pending |
-| SKILL-05 | TBD | Pending |
+| UPGRADE-05 | Phase 1 (API Diff Audit) | Pending |
+| UPGRADE-01 | Phase 2 (Compatibility Upgrade) | Pending |
+| UPGRADE-02 | Phase 2 (Compatibility Upgrade) | Pending |
+| UPGRADE-03 | Phase 2 (Compatibility Upgrade) | Pending |
+| ADOPT-01 | Phase 3 (Adopt High-Value Wins) | Pending |
+| ADOPT-02 | Phase 3 (Adopt High-Value Wins) | Pending |
+| UPGRADE-04 | Phase 4 (Sideload Verify and Skill Propagation) | Pending |
+| SKILL-01 | Phase 4 (Sideload Verify and Skill Propagation) | Pending |
+| SKILL-02 | Phase 4 (Sideload Verify and Skill Propagation) | Pending |
+| SKILL-03 | Phase 4 (Sideload Verify and Skill Propagation) | Pending |
+| SKILL-04 | Phase 4 (Sideload Verify and Skill Propagation) | Pending |
+| SKILL-05 | Phase 4 (Sideload Verify and Skill Propagation) | Pending |
 
 **Coverage:**
 - v1 requirements: 12 total
-- Mapped to phases: 0
-- Unmapped: 12 ⚠️ (roadmapper will close this)
+- Mapped to phases: 12
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-05-17*
-*Last updated: 2026-05-17 after initial definition*
+*Last updated: 2026-05-17 after roadmapper mapped all 12 v1 requirements to 4 phases*
