@@ -24,9 +24,18 @@ The 0.1.19 → 0.1.43 upgrade is **effectively safe** for the current SnAlign co
 - **`npx tsc --noEmit` clean** (exit 0, zero diagnostics) under our strict TS flags (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `strict`). Per D-11 a strict-TS-only failure would still count as Breaking — none observed.
 - **`npx jest` clean** — 7/7 suites pass, 87/87 tests pass.
 
-The audit window does contain one **public-API rename** (`PluginCommAPI.updateLassoRect` → `resizeLassoRect`) that would have broken any pre-`0.1.34` consumer; SnAlign already uses the new name (the `^0.1.19` resolution in our lockfile pulled 0.1.34, which already shipped the rename). It is classified as **Breaking** in §3 with `SnAlign-impact: None — already migrated`.
+Bucket counts:
+- §3 Breaking: **1** entry (`B-01 updateLassoRect → resizeLassoRect` rename) — SnAlign-impact: **None** (already migrated; the `^0.1.19` resolution in our lockfile pulled 0.1.34, which had already shipped the rename).
+- §4 Behavioral: **2** entries — both `paper-only` JSDoc expansions of pre-existing runtime behavior on `PluginManager.setButtonState` / `registerButton`. No SnAlign source edits triggered.
+- §5 Net-new: **11** entries (in-domain) — 7 new `PluginCommAPI` methods (`cancelRecognize`, `generateLassoPreview`, `getCacheElement`, `getPenInfo`, `lassoElements`, `recognizeElements`, `resizeLassoRect`), 2 new `PluginManager` methods (`registerMotionListener`, `showPluginView`), 1 new `PluginFileAPI` method (`deleteElements`), 2 net-new model files (`LassoPreview`, `PenInfo`), 3 net-new top-level type re-exports (`EventType`, `MotionEvent`, `Pointer`). 3 of these are `Phase 3 candidate: needs-eval` (N-01, N-03, N-04); the other 8 are `no`.
 
-The 0.1.43 release is otherwise additive: 7 new methods on `PluginCommAPI` (notably `lassoElements`, `resizeLassoRect`, `getPenInfo`, `generateLassoPreview`), 2 new methods on `PluginManager` (`registerMotionListener`, `showPluginView`), 1 new method on `PluginFileAPI` (`deleteElements`), 2 net-new model files (`LassoPreview`, `PenInfo`), and 3 net-new top-level type exports (`EventType`, `MotionEvent`, `Pointer`).
+SnAlign call sites affected: **0** of 11. The full sweep in §2 confirms every existing call site (`PluginManager.{init, registerButton, registerButtonListener, getPluginDirPath, closePluginView}`, `PluginCommAPI.{getLassoRect, resizeLassoRect, setLassoBoxState, getCurrentFilePath, getCurrentPageNum}`, `PluginFileAPI.getPageSize`) compiles, runs, and returns the same shape under 0.1.43.
+
+ADOPT-01 / ADOPT-02 headline verdicts (from §6):
+- **ADOPT-01 (storage):** No AsyncStorage bundling, no new KV API. In-memory remains the contract; the `KvBackend` interface stays unused. Deferred.
+- **ADOPT-02 (simplification):** No new page-bounds query; `modifyButtonRes` remains unreliable (public TS wrapper still doesn't bridge it through). 3 `needs-eval` net-new candidates worth a Phase 3 spike (`lassoElements`, `generateLassoPreview`, `showPluginView`).
+
+Items deferred to Phase 4 sideload: **8** entries enumerated in §8 (Unknowns / Paper-only Claims). 5 of them refine existing `~/.claude/skills/sn-plugin/` gotchas (per §7); Phase 4's SKILL-01..05 consumes the §7 table as its source-of-truth checklist.
 
 Naming convention used below:
 - Call-site rows in §2: numbered `#N`; verdict tags `unchanged` / `breaking` / `behavioral` / `paper-only-deferred`.
@@ -349,3 +358,7 @@ Numbered list of claims this audit makes that **cannot be verified without on-de
 8. **Comprehensive behavioral confirmation of "no Breaking" in the upgrade** — `tsc` clean and `jest` clean are necessary but not sufficient. Phase 4 should sideload the unmodified SnAlign code against an A5X2 running a 0.1.43-host build and execute the lasso → Apply → Apply & Re-anchor flow. Any divergence (e.g. `setLassoBoxState(2)` not committing the resize per item 1) becomes a Behavioral entry in a follow-up audit.
 
 Per D-15, the scratch branch `scratch/ricardo/ghost-0.1.43` is slated for deletion in Plan 06 once this audit doc lands on dev — the evidence files (this doc + the three appendix files) survive on the audit branch and are reproducible by re-running Plans 01-01 and 01-02.
+
+---
+
+*Audit finalized: 2026-05-17. Evidence appendix: `./lib-0.1.19-to-0.1.43-dts.diff`, `./lib-0.1.43-ghost-tsc.log`, `./lib-0.1.43-ghost-jest.log`.*
