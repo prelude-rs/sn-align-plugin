@@ -1,0 +1,21 @@
+=== ghost-upgrade jest evidence ===
+Date: 2026-05-17T18:01:39-03:00
+Branch: scratch/ricardo/ghost-0.1.43
+sn-plugin-lib resolved version: 0.1.43
+Command: npx jest
+===
+PASS __tests__/onLassoMain.test.ts
+PASS __tests__/i18n.test.ts
+PASS __tests__/anchorStorage.test.ts
+PASS __tests__/anchor.test.ts
+PASS __tests__/pageSize.test.ts
+PASS __tests__/popupController.test.ts
+PASS __tests__/reentrancyGuard.test.ts
+
+Test Suites: 7 passed, 7 total
+Tests:       87 passed, 87 total
+Snapshots:   0 total
+Time:        0.234 s, estimated 1 s
+Ran all test suites.
+===
+jest exit code: 0

@@ -1,0 +1,9 @@
+=== ghost-upgrade tsc evidence ===
+Date: 2026-05-17T18:01:33-03:00
+Branch: scratch/ricardo/ghost-0.1.43
+sn-plugin-lib resolved version: 0.1.43
+Command: npx tsc --noEmit
+===
+===
+tsc exit code: 0
+Result: CLEAN — no type errors under sn-plugin-lib@0.1.43 with strict TS flags

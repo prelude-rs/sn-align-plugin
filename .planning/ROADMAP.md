@@ -28,7 +28,13 @@ Granularity: **coarse** (4 phases — discovery → compatibility → adoption �
   2. Audit explicitly answers: "Is AsyncStorage now bundled, or is there a new KV API?" — the ADOPT-01 decision input.
   3. Audit explicitly answers: "Does `modifyButtonRes` work? Is there a built-in page-bounds query? Any new lasso/page APIs?" — the ADOPT-02 decision input.
   4. Each existing SnAlign call site (`PluginManager`, `PluginCommAPI.{getLassoRect,resizeLassoRect,setLassoBoxState,getCurrentFilePath,getCurrentPageNum,closePluginView}`, `PluginFileAPI.getPageSize`) is checked against the new types and flagged if its signature, behavior, or return shape changed.
-**Plans**: TBD
+**Plans**: 6 plans
+  - [ ] 01-01-PLAN.md — Evidence: .d.ts machine diff between 0.1.19 and 0.1.43 (audit branch + scratch installs)
+  - [ ] 01-02-PLAN.md — Evidence: ghost-upgrade tsc + jest logs on scratch/ricardo/ghost-0.1.43
+  - [ ] 01-03-PLAN.md — Audit doc: call-site sweep + Breaking / Behavioral / Net-new buckets
+  - [ ] 01-04-PLAN.md — Audit doc §6: four targeted answers (AsyncStorage, modifyButtonRes, page-bounds, lasso/page APIs)
+  - [ ] 01-05-PLAN.md — Audit doc §7 + §8: sn-plugin skill gotcha cross-reference + Unknowns / Paper-only Claims
+  - [ ] 01-06-PLAN.md — Final consistency pass + scratch branch deletion (D-15)
 
 ### Phase 2: Compatibility Upgrade
 **Goal**: SnAlign builds, typechecks, and tests green on `sn-plugin-lib ^0.1.43` — the codebase as it stood before any adoption work, just relinked against the new lib.
@@ -71,7 +77,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 (decimal phases inserted ad
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. API Diff Audit | 0/TBD | Not started | - |
+| 1. API Diff Audit | 0/6 | Not started | - |
 | 2. Compatibility Upgrade | 0/TBD | Not started | - |
 | 3. Adopt High-Value Wins | 0/TBD | Not started | - |
 | 4. Sideload Verify and Skill Propagation | 0/TBD | Not started | - |
