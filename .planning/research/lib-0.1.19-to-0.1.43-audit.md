@@ -242,7 +242,110 @@ Verdict per new lasso/page-relevant method:
 ---
 
 ## 7. sn-plugin Skill Gotcha Cross-Reference
-_Filled in Plan 05 (gsd-plan 01-05)._
+
+This section walks every gotcha currently recorded in `~/.claude/skills/sn-plugin/SKILL.md` and `~/.claude/skills/sn-plugin/references/{api-gotchas.md, storage.md, ...}` and tags each one against the 0.1.43 evidence above. **Per D-09 this is a read-only checklist; Phase 1 does NOT edit skill files.** Phase 4 (SKILL-01..05) consumes this table when actually editing the skill.
+
+Tag legend:
+- **still valid in 0.1.43** — gotcha applies unchanged; no skill edit needed.
+- **resolved by 0.1.43** — the 0.1.43 release fixes the underlying issue; skill text can be removed or relaxed.
+- **needs Phase 4 sideload-verify** — paper evidence is ambiguous or refined; Phase 4 must confirm on-device, possibly with skill-text changes.
+
+### 7.1 `SKILL.md` (top-level skill) cross-reference
+
+`~/.claude/skills/sn-plugin/SKILL.md` is the entry-point router. Its "Critical constraints" subsection (coordinate systems, layer restrictions, lasso context, Element + `ElementDataAccessor`, `APIResponse<T>` pattern) restates claims that live in detail in the reference files. The cross-reference table below treats those distilled SKILL.md claims as the canonical entry points and tags them against 0.1.43 evidence; the underlying reference-file rows that drive each tag are itemized in §7.2 and §7.3.
+
+| # | SKILL.md claim | SKILL.md section | Verdict | Driven by |
+|---|----------------|------------------|---------|-----------|
+| K1 | Coordinate systems: EMR vs Pixel; `PointUtils.androidPoint2Emr` / `emrPoint2Android`; supported page sizes incl. A5X2 1920×2560 | "Coordinate systems" | still valid in 0.1.43 | §7.2 rows 5-7 |
+| K2 | Layer restrictions: main (all types), custom 1-3 (no titles/links/five-stars), DOC main-only | "Layer restrictions" | still valid in 0.1.43 | §7.2 rows 20-22 |
+| K3 | Lasso context: most lasso APIs require active selection; `modifyLassoText/Link` require exactly 1 element; `setLassoBoxState(2)` permanently removes | "Lasso context" | needs Phase 4 sideload-verify (one sub-claim) | §7.2 rows 8-12 — specifically row 10's auto-commit semantics question |
+| K4 | Element lifecycle: `Element` is universal data structure; `ElementDataAccessor` is lazy native-backed (not array); `element.recycle()` mandatory; `createElement(type)` before insert | "Element & ElementDataAccessor" | still valid in 0.1.43 | §7.2 rows 23-25 |
+| K5 | API response pattern: `APIResponse<T> = {success, result?, error?}`; always check `success` first | "API response pattern" | still valid in 0.1.43 | §7.2 row 29 |
+| K6 | Plugin lifecycle: install → init → event → UI (showType 1 = popup) → API calls → close | "Plugin lifecycle" | still valid in 0.1.43 | `init`/`registerButton`/`closePluginView` signatures unchanged (audit §2 rows 1,2,5); `showPluginView` is net-new (§5 N-04) — companion only, not a lifecycle change |
+| K7 | Development workflow: scaffold template (`0.79.2`), `PluginManager.init()` in `index.js`, register buttons, build via `buildPlugin.sh`, sideload via `adb push` | "Development workflow" | still valid in 0.1.43 | No SDK changes affect the build/sideload path; `PluginManager.init()` signature unchanged |
+
+**§7.1 headline:** 7 top-level SKILL.md claims; 6 still-valid, 1 (`K3`) routes a `needs-Phase-4-sideload-verify` sub-claim through to §7.2 row 10.
+
+### 7.2 `api-gotchas.md` cross-reference
+
+| # | Gotcha topic | Source | Verdict | Notes (refinement Phase 4 should consider) |
+|---|--------------|--------|---------|------|
+| 1 | `editDataTypes` 0–5 indexing (NOT ElementType constants) | api-gotchas.md "Button registration" | still valid in 0.1.43 | `registerButton` signature unchanged (audit §2 row 2). |
+| 2 | All geometry shapes share `editDataTypes` = 5 | api-gotchas.md "Button registration" | still valid in 0.1.43 | Filter semantics unchanged in source. |
+| 3 | `registerButton({name})` must be JSON-encoded for multi-locale | api-gotchas.md "Button registration" | still valid in 0.1.43 | No new locale-map API. |
+| 4 | `pressEvent` field disambiguates lasso vs page taps | api-gotchas.md "Button registration" | still valid in 0.1.43 | Event-payload shape unchanged. |
+| 5 | Pixel vs EMR coordinate matrix | api-gotchas.md "Coordinate systems" | still valid in 0.1.43 | `PointUtils` still bundled; `node_modules/sn-plugin-lib/lib/typescript/src/utils/PointUtils.d.ts` saw doc-string changes only. |
+| 6 | `insertFiveStar` wants pixel coords despite `Point[]` type | api-gotchas.md "Coordinate systems" | still valid in 0.1.43 | Signature unchanged. |
+| 7 | Supported `PointUtils` page sizes (matrix incl. A5X2 1920×2560) | api-gotchas.md "Coordinate systems" | still valid in 0.1.43 | No matrix expansion in source/types. |
+| 8 | Lasso APIs require active selection | api-gotchas.md "Lasso APIs" | still valid in 0.1.43 | Lasso-context guard unchanged. |
+| 9 | `modifyLassoText` / `modifyLassoLink` require exactly 1 element | api-gotchas.md "Lasso APIs" | still valid in 0.1.43 | Signatures unchanged. |
+| 10 | `setLassoBoxState(2)` permanently removes the lasso | api-gotchas.md "Lasso APIs" | needs Phase 4 sideload-verify | Type signature + state enum (0/1/2) unchanged, but D-10 / D-16 specifically call out potential auto-commit semantic drift; on-device verification required. See §8.1. |
+| 11 | `getLassoRect()` returns firmware-pixel coords | api-gotchas.md "Lasso APIs" | still valid in 0.1.43 | Return shape `{left,top,right,bottom}` unchanged (audit §2 row 6). |
+| 12 | `resizeLassoRect()` commits on `setLassoBoxState(2)` | api-gotchas.md "Lasso APIs" | needs Phase 4 sideload-verify | Method renamed from `updateLassoRect` (audit §3 B-01); SnAlign already migrated. The "commits on setLassoBoxState(2)" claim is paper-only and depends on §7.1 row 10's on-device check. |
+| 13 | `recognizeElements` needs full page size, not lasso rect | api-gotchas.md "Lasso APIs" | needs Phase 4 sideload-verify | **Now testable** — `recognizeElements` is net-new in 0.1.43 (§5 N-08). Existing skill claim is forward-looking; Phase 4 sideload should validate before promoting the claim to "verified". |
+| 14 | `recognizeElements` only handles strokes + text-boxes | api-gotchas.md "Lasso APIs" | needs Phase 4 sideload-verify | Same as row 13 — net-new in 0.1.43, claim is paper-only. |
+| 15 | `PluginFileAPI` read-vs-write parameter order inconsistency | api-gotchas.md "File / Page APIs" | still valid in 0.1.43 | Signatures unchanged for the documented methods. |
+| 16 | `getLastElement()` takes no parameters | api-gotchas.md "File / Page APIs" | still valid in 0.1.43 | Signature unchanged. |
+| 17 | `PluginNoteAPI.insertText` targets current page silently | api-gotchas.md "File / Page APIs" | still valid in 0.1.43 | Out of SnAlign scope; PluginNoteAPI signatures unchanged. |
+| 18 | Save before file-level CRUD | api-gotchas.md "File / Page APIs" | still valid in 0.1.43 | No new save/flush semantics. |
+| 19 | DOC has no `insertText` / `insertTitle` / `insertLink` | api-gotchas.md "File / Page APIs" | still valid in 0.1.43 | Out of SnAlign scope; PluginDocAPI surface unchanged. |
+| 20 | Main layer supports all element types | api-gotchas.md "Layer restrictions" | still valid in 0.1.43 | Layer model file changed (comment translations), behavior unchanged. |
+| 21 | Custom layers 1–3 restrictions | api-gotchas.md "Layer restrictions" | still valid in 0.1.43 | No new layer types. |
+| 22 | DOC files only have main layer | api-gotchas.md "Layer restrictions" | still valid in 0.1.43 | Unchanged. |
+| 23 | `element.recycle()` MUST be called | api-gotchas.md "Element lifecycle" | still valid in 0.1.43 | Element model file changed (doc-string), recycle semantics unchanged in source. |
+| 24 | `ElementDataAccessor<T>` is not an array | api-gotchas.md "Element lifecycle" | still valid in 0.1.43 | Accessor implementation unchanged in source. |
+| 25 | `createElement(type)` required before insert | api-gotchas.md "Element lifecycle" | still valid in 0.1.43 | `createElement` signature unchanged; companion `getCacheElement` is net-new (§5 N-07) but doesn't replace the create-then-insert pattern. |
+| 26 | `Element.recognizeResult` is region classification, NOT OCR text | api-gotchas.md "Misleading names" | still valid in 0.1.43 | Element model changes are doc-string only. |
+| 27 | `EinkManager.enableFullUiAuto` is e-ink refresh, NOT pen disable | api-gotchas.md "Misleading names" | still valid in 0.1.43 | EinkManager surface unchanged. |
+| 28 | `pluginManager.modifyButtonRes` declared in `.d.ts` but NOT exposed | api-gotchas.md "Runtime mutation" | needs Phase 4 sideload-verify | **Refinement needed in skill text.** Per §6.2: the type is declared on `NativePluginManager.d.ts:112` (NOT on the public `PluginManager.d.ts`); the public `PluginManager.ts` wrapper does NOT bridge it through; the native Android impl exists at `PluginModule.java:113`. So the issue isn't "firmware doesn't expose it" — it's "the public TS API doesn't bridge it". Direct `NativePluginManager.modifyButtonRes(...)` calls MIGHT work on A5X2 — Phase 4 sideload should test. |
+| 29 | All async APIs return `APIResponse<T>` envelope | api-gotchas.md "API response pattern" | still valid in 0.1.43 | Envelope shape unchanged across the diff (error/APIError.d.ts changes are doc-string only). |
+| 30 | `getPluginDirPath()` is slow — cache the result | api-gotchas.md "Async / performance" | still valid in 0.1.43 | No async-performance changes in source. |
+| 31 | `NativePluginManager` vs `PluginManager` two different modules | api-gotchas.md "Async / performance" | still valid in 0.1.43 | Both modules exist; row 28's refinement underscores why the distinction matters. |
+| 32 | `generateStickerThumbnail` takes a Size object | api-gotchas.md "Sticker-specific" | still valid in 0.1.43 | Signature unchanged. |
+| 33 | `saveStickerByLasso` takes a full file path | api-gotchas.md "Sticker-specific" | still valid in 0.1.43 | Signature unchanged. |
+
+### 7.3 `storage.md` cross-reference
+
+| # | Storage claim | Source | Verdict | Notes |
+|---|---------------|--------|---------|-------|
+| S1 | In-memory storage is the default; sufficient for most plugins | storage.md TL;DR | still valid in 0.1.43 | No new persistence API ships. |
+| S2 | `@react-native-async-storage/async-storage` native module is NOT included in plugin host | storage.md "In-memory storage" | still valid in 0.1.43 | Confirmed via §6.1 static evidence (no AsyncStorage refs in `node_modules/sn-plugin-lib/android/` or `src/`; empty `dependencies`; peers = react/react-native only). |
+| S3 | `KvBackend` interface pattern lets future firmware swap in real persistence | storage.md "KvBackend interface" | still valid in 0.1.43 | SnAlign's `src/storage/anchorStorage.ts` already implements this; future-proof posture remains correct. |
+| S4 | `react-native-sqlite-storage` works via `node_change/` bundle | storage.md "SQLite via node_change/" | still valid in 0.1.43 | No SDK changes affect this path. |
+| S5 | Plain file I/O via `react-native-fs` via `node_change/` | storage.md "Persistent files via react-native-fs" | still valid in 0.1.43 | `NativePluginManager.getPluginDirPath()` signature unchanged. |
+| S6 | AsyncStorage failure mode logs "Native module is null, cannot access legacy storage" and rejects | storage.md "Pitfalls" | still valid in 0.1.43 | Confirmed by absence of bundled module per §6.1. |
+
+### 7.4 Other reference files — no changes triggered
+
+The following reference files have **no entries flagged** by 0.1.43:
+
+- `references/setup-and-build.md` — `node_change/` mechanism and icon-sibling buildPlugin.sh patch unaffected by the SDK upgrade.
+- `references/patterns.md` — popup mount race, lasso flow, pending button — all SDK-stable behaviors.
+- `references/pen-emr.md` — PointUtils + EMR coordinate model unchanged; A5X2 page-size matrix unchanged.
+- `references/floating-window.md` — overlay / orientation / foreground detection — SDK-stable.
+- `references/i18n.md` — JSON-encoded locale map + hand-rolled `t(key)` pattern — SDK-stable; the locale-listener signature `registerLangListener` is unchanged (audit §2 by inspection).
+- `references/release.md` — workflow-dispatch, dev→main, `gh workflow run release.yml` — not an SDK concern.
+
+**§7 headline:** 39 cross-referenced gotchas/claims. 35 still-valid, 0 resolved, 4 `needs Phase 4 sideload-verify` (api-gotchas rows 10, 12, 13/14 pair, 28). No skill text edited in Phase 1.
 
 ## 8. Unknowns / Paper-only Claims
-_Filled in Plan 05 (gsd-plan 01-05)._
+
+Numbered list of claims this audit makes that **cannot be verified without on-device sideload** (per D-16). Phase 4's sideload-verification consumes this section as its test plan.
+
+1. **`setLassoBoxState(2)` auto-commit semantics on A5X2 firmware** — the audit (§7.1 row 10) keeps the existing skill claim that state=2 "permanently removes the lasso" and "commits any pending resize"; type-surface signals don't tell us whether the on-wire commit semantics shifted between 0.1.19 and 0.1.43. Phase 4 test plan: call `resizeLassoRect(rect)` then `setLassoBoxState(2)` and inspect the persisted note for the resize commit; compare against a control run with state=1.
+
+2. **AsyncStorage runtime presence on A5X2 firmware** — §6.1 confirms the tarball does not bundle AsyncStorage and the dependency/peer/Android-bridge surface is clean. The audit cannot rule out that the host firmware injects `@react-native-async-storage/async-storage` at runtime. Phase 4 test plan: at plugin startup, `try { require('@react-native-async-storage/async-storage') } catch (e) { ... }` and report the result.
+
+3. **`modifyButtonRes` on-device reliability via direct `NativePluginManager` call** — §6.2 + §7.1 row 28 refine the existing skill gotcha: the type is declared on the native module, the public TS wrapper doesn't bridge it through, and the Android Java side does implement it. Phase 4 test plan: import `NativePluginManager` directly, call `NativePluginManager.modifyButtonRes({id: 201, ...})` after `registerButton`, and check (a) whether the call returns `{success: true}`, (b) whether the on-screen button resource actually changes. If (a) is true but (b) is false, update the skill text accordingly.
+
+4. **`PluginCommAPI.lassoElements(rect)` on-device behavior** — N-01 / §6.4. Phase 4 test plan: with an active lasso selection, call `lassoElements(rect2)` with a non-overlapping rect; verify (a) selection survives, (b) element identity is preserved (compare `getLassoElementTypeCounts` before vs after), (c) undo (long-press / hardware undo button) restores the original lasso.
+
+5. **`PluginCommAPI.generateLassoPreview(imagePath)` latency on E-Ink** — N-03 / §6.4. Phase 4 test plan: time the call against a typical mid-sized lasso (10-30 strokes). Decision gate for Phase 3 adoption: < 200 ms is acceptable for in-popup display; > 500 ms means defer behind a "show preview" toggle.
+
+6. **`PluginManager.showPluginView()` post-close behavior** — N-04 / §6.4. Phase 4 test plan: call `closePluginView()`, then immediately `showPluginView()` — verify the popup re-renders without a fresh button press, and that `popupController` state replays correctly (since the JS context survives across show/close cycles per the sn-plugin skill).
+
+7. **`PluginCommAPI.recognizeElements` semantics on net-new 0.1.43 surface** — §7.1 rows 13/14. Until now the skill's claims about `recognizeElements` were forward-looking (the method didn't exist in 0.1.19). Phase 4 test plan: run `recognizeElements(strokes, getPageSize())` on a lasso containing only strokes — verify the OCR text is returned and that geometry/pictures/five-stars are silently dropped (matches existing skill claim).
+
+8. **Comprehensive behavioral confirmation of "no Breaking" in the upgrade** — `tsc` clean and `jest` clean are necessary but not sufficient. Phase 4 should sideload the unmodified SnAlign code against an A5X2 running a 0.1.43-host build and execute the lasso → Apply → Apply & Re-anchor flow. Any divergence (e.g. `setLassoBoxState(2)` not committing the resize per item 1) becomes a Behavioral entry in a follow-up audit.
+
+Per D-15, the scratch branch `scratch/ricardo/ghost-0.1.43` is slated for deletion in Plan 06 once this audit doc lands on dev — the evidence files (this doc + the three appendix files) survive on the audit branch and are reproducible by re-running Plans 01-01 and 01-02.
