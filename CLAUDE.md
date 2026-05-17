@@ -84,29 +84,17 @@ gh workflow run release.yml --ref main                                          
 gh workflow run release.yml --ref main -f version=X.Y.Z                              # one-off override
 ```
 
-## Conventions
+## Conventions (project-specific)
 
-- **Sync-first reentrancy release.** `release()` MUST run before any `await` in teardown. The firmware's `state:stop` can suspend the JS context mid-await and leave the busy flag stuck.
+For cross-cutting Supernote firmware quirks (sync-first reentrancy release, console.log-only logger, modifyButtonRes unavailability, JSON locale maps, editDataTypes 0-5 filter, AsyncStorage failure mode, icon-sibling `buildPlugin.sh` patch, etc.) see the **`sn-plugin` skill**. The conventions below are SnAlign-specific decisions.
+
 - **PopupRoot never returns null.** Returning null caused the firmware to dismiss the overlay before our state update could re-render. Render a safe header + close button when `state.callbacks` is null.
 - **Subscribe replays state.** `popupController.subscribe(listener)` calls `listener(currentState)` immediately so a `show()` that fired before React mount isn't lost.
-- **Settings changes auto-persist.** Picker / toggle / offset callbacks save through `storage.setConfig` immediately; only Save / Apply / Clear / Close tear down the popup.
+- **Settings changes auto-persist.** Picker / toggle / offset callbacks save through `storage.setConfig` immediately; only Apply / Apply & Re-anchor / Set Anchor / Close tear down the popup.
 - **Page bounds checked before Apply.** `resolvePageSize` queries firmware via `PluginCommAPI.getCurrentFilePath` + `getCurrentPageNum` + `PluginFileAPI.getPageSize`, falling back to 1920×2560 if any step fails. The popup pre-computes whether the next Apply would exit the page; `outOfBounds` flag drives the disabled state and the inline warning.
-- **One global button listener** in `index.js`, route by `event.id`.
-- **`closePluginView` lives on `PluginManager`**, not `PluginCommAPI`.
-- **Logging**: firmware suppresses `console.warn`/`console.error`; route through `console.log` with explicit `[WARN]`/`[ERROR]` prefix. Every line we emit is `[align:<subsystem>] …` — grep `ReactNativeJS.*\[align:` in logcat.
-- **Storage is in-memory only.** AsyncStorage native module isn't bundled in the host. No migration across schema versions — bumping `SCHEMA_VERSION` returns `DEFAULT_ANCHOR_STATE` for any older envelope.
-- **Icons.** `PluginConfig.json.iconPath` is the only icon copied by default; `buildPlugin.sh` was patched to also copy sibling PNGs from the icon directory. At runtime, resolve via `file://${getPluginDirPath()}/<filename>`.
-- **No emoji in code/comments unless user requests.**
-
-## Firmware quirks (one-line each, see `~/.claude/projects/.../memory/supernote_sdk_quirks.md` for context)
-
-- `modifyButtonRes` declared in SDK but not exposed by firmware — register the button you want; don't try to mutate it at runtime.
-- Register all buttons before any `setButtonState` calls.
-- `editDataTypes` values: `0=stroke, 1=title, 2=image, 3=text-box, 4=link, 5=geometry`. Use `[0..5]` for "any lasso content"; missing `5` greys the button for shape selections.
-- `resizeLassoRect` translation commits on `setLassoBoxState(2)`; supports native undo.
-- Plugin name + button names are JSON-encoded `{locale: string}` maps.
-- `PluginFileAPI.getPageSize(notePath, page)` returns dimensions in firmware coords (same system as `resizeLassoRect`).
-- Sibling plugin repos for reference: `~/repo/SN/sn-shapes`, `sn-mindmap`, `sn-dictionary`, `sn-plugin-demo-sticker`.
+- **One global button listener** in `index.js`, routes by `event.id` (only id 201 today).
+- **`config` and `anchorBox` are orthogonal.** Changing config doesn't disturb the anchor and vice versa. This is load-bearing — any "fix" that couples them is wrong.
+- **`performApply(alsoReAnchor)` shared between Apply and Apply & Re-anchor.** The re-anchor variant calls `storage.setAnchorBox(newRect)` after successful resize. Skipped on resize failure / out-of-bounds so chaining off a failed step can't silently corrupt the anchor.
 
 ## Branch / PR workflow
 
