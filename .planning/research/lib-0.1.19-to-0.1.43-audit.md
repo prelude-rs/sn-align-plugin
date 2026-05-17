@@ -169,7 +169,77 @@ The 0.1.43 release also touches handwriting-recognition internals, the layer eng
 **§5 headline:** 11 in-domain Net-new entries (N-01..N-11). Three are `needs-eval` Phase 3 candidates (N-01, N-03, N-04); the rest are `no`.
 
 ## 6. Four Targeted Answers
-_Filled in Plan 04 (gsd-plan 01-04)._
+
+These answers feed the ADOPT-01 (persistent storage) and ADOPT-02 (simplification) decisions in Phase 3. Per D-07/D-08, claims here are static analysis only — on-device runtime proof is deferred to Phase 4 sideload (and surfaced in §8 Unknowns).
+
+Every subsection below cites at least one `node_modules/sn-plugin-lib/...` path locally, enforced by the §6 verify gate (per-subsection `awk`/`grep` block — see Plan 01-04 Task 1's verify automation).
+
+### 6.1 AsyncStorage — bundled? new KV API?
+
+Static evidence (each bullet cites a path under `node_modules/sn-plugin-lib/`):
+
+- **Native (Android):** `grep -rni "asyncstorage\|@react-native-async-storage" node_modules/sn-plugin-lib/android/` → **no matches.** The `node_modules/sn-plugin-lib/android/src/main/java/com/ratta/supernote/pluginlib/modules/PluginModule.java` (the central native bridge) declares its `@ReactMethod` surface (e.g. `modifyButtonRes` at line 113); none of the methods provide an `AsyncStorage`-shaped KV API.
+- **Native (iOS):** `node_modules/sn-plugin-lib/RtnSupernotePluginCore.podspec` declares the pod's resource scope; no `AsyncStorage` integration declared. (iOS isn't a target platform for SnAlign — A5X2 is Android — but the audit covers the package surface.)
+- **Peer deps:** `node_modules/sn-plugin-lib/package.json` — `"dependencies": {}` (empty); `"peerDependencies": ["react", "react-native"]`. **No AsyncStorage-shaped peer or runtime dep.** Same as 0.1.19.
+- **Net-new KV surface check:** Walked `node_modules/sn-plugin-lib/lib/typescript/src/PluginManager.d.ts`, `lib/typescript/src/module/NativePluginManager.d.ts`, `lib/typescript/src/sdk/PluginFileAPI.d.ts`, and `lib/typescript/src/sdk/PluginCommAPI.d.ts` for KV-shaped methods (`getItem` / `setItem` / `removeItem` / `kvStore` / `storage`). **No matches.** No new public method exposes a KV store.
+
+Verdict:
+- **Bundling:** **no** — `AsyncStorage` is neither a dep, peerDep, nor bundled in the native bridge (Android Java side has no AsyncStorage module registration; the podspec has no AsyncStorage resource).
+- **New KV API on PluginManager / NativePluginManager / PluginFileAPI:** **no** — none found.
+- **SnAlign-impact (per ADOPT-01):** `src/storage/anchorStorage.ts` keeps `createMemoryAnchorStorage` as the default. The unused `createKvBackedAnchorStorage` + `KvBackend` interface remain in place for any future firmware that bundles a KV. **In-memory remains the contract; ADOPT-01 stays deferred** — matches the current `sn-plugin` skill claim at `~/.claude/skills/sn-plugin/references/storage.md`.
+- **Deferred to Phase 4 sideload:** runtime confirmation that no untyped KV native module is silently registered by the firmware host (the audit can only see what the tarball ships; the host firmware could in principle inject AsyncStorage). Phase 4 sideload's diagnostic is: `try { require('@react-native-async-storage/async-storage') } catch` on device.
+
+### 6.2 modifyButtonRes — does it work in 0.1.43?
+
+Static evidence (each bullet cites a path under `node_modules/sn-plugin-lib/`):
+
+- **Type declaration:** Declared at `node_modules/sn-plugin-lib/lib/typescript/src/module/NativePluginManager.d.ts:112` — `modifyButtonRes(button: Object): Promise<boolean>`. **Not** re-declared on the public `PluginManager` surface (`lib/typescript/src/PluginManager.d.ts` has no `modifyButtonRes` line).
+- **Source implementation (TS bridge):** Declared at `node_modules/sn-plugin-lib/src/module/NativePluginManager.ts:130` — `modifyButtonRes(button: Object,): Promise<boolean>;`. The public wrapper `node_modules/sn-plugin-lib/src/PluginManager.ts` does NOT re-export it (grep confirms: only `unregisterButtonRes` is bridged through — line 521). So a JS consumer would have to call `NativePluginManager.modifyButtonRes(...)` directly, bypassing the public API.
+- **Source implementation (native Android):** Implemented at `node_modules/sn-plugin-lib/android/src/main/java/com/ratta/supernote/pluginlib/modules/PluginModule.java:113` — `public void modifyButtonRes(ReadableMap button, Promise promise)`. The native side accepts the call.
+- **Cross-reference with current skill gotcha:** `~/.claude/skills/sn-plugin/references/api-gotchas.md` claims `modifyButtonRes` is "declared in .d.ts but NOT exposed by firmware". The 0.1.43 source corroborates that the **public TS wrapper doesn't bridge it** (refines the prior claim — the native side is there, but the JS-facing API isn't). Firmware on-device reliability remains unverified.
+
+Verdict:
+- **Type present:** **yes** — on `NativePluginManager.d.ts:112` (but NOT on the public `PluginManager.d.ts`).
+- **Source implementation present:** **yes** (native Android side at `PluginModule.java:113` + TS bridge interface). The public wrapper, however, does NOT bridge it through.
+- **Paper assessment:** **still unreliable from a public-API standpoint.** A consumer would need to import `NativePluginManager` directly (bypassing the public surface), and on-device reliability remains an open question per the existing skill gotcha.
+- **SnAlign-impact (per ADOPT-02):** **skip — still marked unreliable.** SnAlign already disables modifyButtonRes in `src/buttons/buttonCommon.ts`'s SnAlign-side stub (`PluginManagerLike.modifyButtonRes?` is optional and never invoked at runtime). Keep as-is for Phase 2.
+- **Deferred to Phase 4 sideload (per D-08):** on-device reliability across A5X2 firmware variants. Specifically: does a direct call to `NativePluginManager.modifyButtonRes(...)` actually mutate a registered button's resources on A5X2? Flag for SKILL-01 / SKILL-02 gotcha audit in Phase 4 — the skill text needs the "TS wrapper doesn't bridge it" nuance added.
+
+### 6.3 Page-bounds query — is there a built-in?
+
+Static evidence (each bullet cites a path under `node_modules/sn-plugin-lib/`):
+
+- **Type-surface walk:** Searched `node_modules/sn-plugin-lib/lib/typescript/src/PluginCommAPI.d.ts` and `node_modules/sn-plugin-lib/lib/typescript/src/sdk/PluginFileAPI.d.ts` for any method matching: `pageBounds`, `pageRect`, `getPageRect`, `clampToPage`, `pageExtent`, `pageInfo`. **No matches.** The 0.1.43 type surface still exposes only `PluginFileAPI.getPageSize(notePath, page)` and `PluginCommAPI.getCurrentPageNum()` + `getCurrentFilePath()` — the same 3-step resolution SnAlign already uses in `src/sdk/pageSize.ts`.
+- **Source walk:** Searched `node_modules/sn-plugin-lib/src/sdk/PluginCommAPI.ts` and `node_modules/sn-plugin-lib/src/sdk/PluginFileAPI.ts` for any `clamp` / `inPage` / `wouldExit` helper. **No matches.** No source-only utility hides a page-bounds query that the .d.ts doesn't surface.
+
+Verdict:
+- **New page-bounds query:** **none found.** The 0.1.43 release does not add a single-call page-bounds / clamp-rect helper to `PluginCommAPI` or `PluginFileAPI`. SnAlign's existing 3-step `resolvePageSize` (`src/sdk/pageSize.ts:18-50`) + fallback to `1920×2560` remains the right approach.
+- **SnAlign-impact (per ADOPT-02):** **no win — keep current 3-step + fallback.** The `wouldExitPage` computation in `src/handlers/onLassoMain.ts` stays as-is; no simplification opportunity from the SDK side.
+
+### 6.4 Other new lasso/page APIs
+
+Static evidence (each bullet cites a path under `node_modules/sn-plugin-lib/`):
+
+- Walked `node_modules/sn-plugin-lib/lib/typescript/src/sdk/PluginCommAPI.d.ts` for net-new methods relevant to the lasso/page flow. Per D-06, only "adjacent-domain" net-new in `PluginCommAPI` / `PluginFileAPI` counts; unrelated domains (handwriting recognition pipeline, layer engine, custom drawing) get a "present, not surveyed" mention.
+- Cross-referenced against §5 (Net-new APIs) — restated the relevant `node_modules/sn-plugin-lib/...` citations inline below so this subsection independently satisfies the per-subsection citation gate.
+
+Verdict per new lasso/page-relevant method:
+
+| Method | Citation | Phase 3 candidate | Reason |
+|--------|----------|-------------------|--------|
+| `PluginCommAPI.lassoElements(rect)` | `node_modules/sn-plugin-lib/lib/typescript/src/sdk/PluginCommAPI.d.ts:149` | **needs-eval** | Could replace the lasso programmatically (vs. resizing). Eval gate: element-selection preservation, undo behavior on A5X2. |
+| `PluginCommAPI.resizeLassoRect(rect)` | `node_modules/sn-plugin-lib/lib/typescript/src/sdk/PluginCommAPI.d.ts:130` | **no — already adopted** | Renamed from `updateLassoRect`; SnAlign already calls it (§3 B-01). No new work. |
+| `PluginCommAPI.getLassoElements()` | `node_modules/sn-plugin-lib/lib/typescript/src/sdk/PluginCommAPI.d.ts:174` (present in 0.1.19 too) | **no** | Pre-existing; not relevant to alignment (returns elements, not bounds). |
+| `PluginCommAPI.getLassoElementTypeCounts()` | `node_modules/sn-plugin-lib/lib/typescript/src/sdk/PluginCommAPI.d.ts:179` (present in 0.1.19 too) | **no** | Pre-existing. Could power a popup-side label ("aligning N strokes + M images"); cosmetic only. |
+| `PluginCommAPI.deleteLassoElements()` | `node_modules/sn-plugin-lib/lib/typescript/src/sdk/PluginCommAPI.d.ts:184` (present in 0.1.19 too) | **no** | Pre-existing; destructive — out of SnAlign scope. |
+| `PluginCommAPI.generateLassoPreview(imagePath)` | `node_modules/sn-plugin-lib/lib/typescript/src/sdk/PluginCommAPI.d.ts:292` | **needs-eval** | Could let SnAlign show a preview thumbnail in the popup. Eval gate: disk-I/O latency on E-Ink. |
+| `PluginCommAPI.getLassoGeometries()` | `node_modules/sn-plugin-lib/lib/typescript/src/sdk/PluginCommAPI.d.ts:204` (present in 0.1.19 too) | **no** | Pre-existing. |
+| `PluginManager.showPluginView()` | `node_modules/sn-plugin-lib/lib/typescript/src/PluginManager.d.ts:125` | **needs-eval** | Would enable "Apply without closing" UX. Tied to undecided UX question — defer with N-04. |
+| `PluginFileAPI.deleteElements(notePath, page, numsInPage)` | `node_modules/sn-plugin-lib/lib/typescript/src/sdk/PluginFileAPI.d.ts:54` | **no** | File-scope delete, requires path discovery; not relevant to lasso flow. |
+
+**Unrelated-domain net-new APIs (per D-06 — present, not surveyed):** the 0.1.43 release also touches handwriting-recognition (PluginCommAPI's `recognizeElements` / `cancelRecognize` per §5 N-08), pen-info read-back (N-02), element-cache lookup (N-07), motion-event listening (N-05), and assorted layer / sticker / drawing internals. Present, not surveyed.
+
+---
 
 ## 7. sn-plugin Skill Gotcha Cross-Reference
 _Filled in Plan 05 (gsd-plan 01-05)._
