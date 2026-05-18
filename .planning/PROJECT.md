@@ -84,7 +84,8 @@ Translate a lasso selection so a chosen reference point lands on a chosen refere
 | Subscribe replays current state | `popupController.subscribe(listener)` calls `listener(currentState)` immediately so a `show()` fired before React mount isn't lost. | ✓ Good |
 | Settings auto-persist on every callback | Picker / toggle / offset changes save through `storage.setConfig` immediately. Only Apply / Apply & Re-anchor / Set Anchor / Close tear down the popup. | ✓ Good |
 | Cross-cutting plugin knowledge in `sn-plugin` skill, not CLAUDE.md | CLAUDE.md was bloated with SDK quirks that apply to every Supernote plugin. Moved to skill so future plugins reuse it. | ✓ Good — landed in PR #30 |
-| Adopt high-value wins from lib upgrade | If the new lib unlocks deferred behavior (persistent storage, working `modifyButtonRes`), pick it up in this milestone rather than waiting. | — Pending |
+| Adopt high-value wins from lib upgrade | If the new lib unlocks deferred behavior (persistent storage, working `modifyButtonRes`), pick it up in this milestone rather than waiting. | ✓ Declined — paper-dispositive (Phase 3, audit §6.1: no AsyncStorage bundling / no new KV API). In-memory storage remains; `KvBackend` dead code removed in 03-01 refactor. Reopener: future lib release adds a KV API. |
+| Adopt code simplifications from lib upgrade | If the new lib exposes APIs that materially simplify existing code (modifyButtonRes, page-bounds query, lassoElements, generateLassoPreview, showPluginView), adopt those with net-negative LOC. | ✓ Declined — all 5 candidates paper-dispositive (Phase 3, audit §6.2/§6.3/§5 N-01/N-03/N-04/§6.4). No source edits; `modifyButtonRes?` stub stays as optional, accurate SDK posture. Reopener: lib bridges modifyButtonRes publicly, OR user signals demand for preview/"apply-without-closing" UX. |
 | Code-ready milestone (no v0.4.0 tag yet) | The lib upgrade may surface issues only visible on-device. Sideload-test before committing to a release. | — Pending |
 
 ## Evolution
@@ -105,4 +106,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-17 after initialization (`/gsd-new-project` brownfield run, planning the sn-plugin-lib 0.1.19 → 0.1.43 upgrade milestone)*
+*Last updated: 2026-05-17 after Phase 3 (Adopt High-Value Wins) recorded ADOPT-01 + ADOPT-02 decline verdicts (paper-dispositive per audit §6.1/§6.2/§6.3/§5/§6.4; KvBackend dead code removed in 03-01 refactor).*

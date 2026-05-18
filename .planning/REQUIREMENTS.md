@@ -17,8 +17,8 @@
 
 ### Adopt — pick up newly-unlocked capabilities where high value
 
-- [ ] **ADOPT-01**: If the new lib enables real persistent storage (bundled AsyncStorage native module OR a new KV API on `PluginManager`/`NativePluginManager`/`PluginFileAPI`), swap the in-memory `anchorStorage` for it through the existing `KvBackend` interface. Anchor + config survive plugin reinstall and device restart, verified by sideload test. **Conditional on UPGRADE-05 finding.**
-- [ ] **ADOPT-02**: If the new lib exposes any API that materially simplifies code we already have (e.g. a working `modifyButtonRes`, a built-in page-bounds query, a `setLassoBoxState` shortcut), adopt where the simplification is net-negative LOC. Skip if marginal. **Conditional on UPGRADE-05 finding.**
+- [x] **ADOPT-01**: If the new lib enables real persistent storage (bundled AsyncStorage native module OR a new KV API on `PluginManager`/`NativePluginManager`/`PluginFileAPI`), swap the in-memory `anchorStorage` for it through the existing `KvBackend` interface. Anchor + config survive plugin reinstall and device restart, verified by sideload test. **Conditional on UPGRADE-05 finding.** — *Declined Phase 3 (2026-05-17): audit §6.1 dispositive — no AsyncStorage bundling in `node_modules/sn-plugin-lib/android/`; empty `dependencies` in `node_modules/sn-plugin-lib/package.json`; no KV-shaped public method on `PluginManager.d.ts` / `NativePluginManager.d.ts` / `PluginFileAPI.d.ts` / `PluginCommAPI.d.ts`. In-memory storage remains the contract (matches ROADMAP §3 SC#1's "If unavailable, the decision is documented and in-memory storage remains"). Dead `KvBackend` scaffolding removed in Phase 3-01 refactor. Reopener: future `sn-plugin-lib` release adds a public KV API on `PluginManager` / `NativePluginManager` / `PluginFileAPI` — re-run the Phase 1 audit shape on any future patch/minor/major release.*
+- [x] **ADOPT-02**: If the new lib exposes any API that materially simplifies code we already have (e.g. a working `modifyButtonRes`, a built-in page-bounds query, a `setLassoBoxState` shortcut), adopt where the simplification is net-negative LOC. Skip if marginal. **Conditional on UPGRADE-05 finding.** — *Declined Phase 3 (2026-05-17): all 5 candidate simplifications declined as paper-dispositive. (1) `modifyButtonRes` — audit §6.2: public `PluginManager` wrapper still does not bridge it; the optional `modifyButtonRes?` stub in `src/buttons/buttonCommon.ts` stays as accurate SDK posture. (2) Page-bounds query — audit §6.3: no new public API on `PluginCommAPI` / `PluginFileAPI`; existing 3-step `resolvePageSize` + 1920×2560 fallback in `src/sdk/pageSize.ts` stays. (3) `lassoElements(rect)` — audit §5 N-01 + native bridge inspection (`CommAPIModule.java:763`): semantically distinct from `resizeLassoRect` ("套索元素" = "lasso the elements at this rect", vs. "调整套索框区域大小" = "adjust lasso box region size") — would regress the move-via-bbox trick, not simplify it. (4) `generateLassoPreview` — audit §5 N-03 + §6.4: UX-additive only, no LOC reduction; declined sight-unseen. (5) `showPluginView` — audit §5 N-04 + §6.4: only useful if "Apply without closing" UX is desired; declined sight-unseen. Reopener: a future `sn-plugin-lib` release that bridges `modifyButtonRes` on the public `PluginManager` surface, OR a user signal for lasso-content preview thumbnail (re-evaluates N-03), OR a UX revisit of "Apply without closing" (re-evaluates N-04).*
 
 ### Skill — keep `~/.claude/skills/sn-plugin/` accurate for future plugins
 
@@ -63,8 +63,8 @@ Deferred to future milestone after this code-ready set lands and sideloads clean
 | UPGRADE-01 | Phase 2 (Compatibility Upgrade) | Pending |
 | UPGRADE-02 | Phase 2 (Compatibility Upgrade) | Pending |
 | UPGRADE-03 | Phase 2 (Compatibility Upgrade) | Pending |
-| ADOPT-01 | Phase 3 (Adopt High-Value Wins) | Pending |
-| ADOPT-02 | Phase 3 (Adopt High-Value Wins) | Pending |
+| ADOPT-01 | Phase 3 (Adopt High-Value Wins) | Declined |
+| ADOPT-02 | Phase 3 (Adopt High-Value Wins) | Declined |
 | UPGRADE-04 | Phase 4 (Sideload Verify and Skill Propagation) | Pending |
 | SKILL-01 | Phase 4 (Sideload Verify and Skill Propagation) | Pending |
 | SKILL-02 | Phase 4 (Sideload Verify and Skill Propagation) | Pending |
@@ -79,4 +79,4 @@ Deferred to future milestone after this code-ready set lands and sideloads clean
 
 ---
 *Requirements defined: 2026-05-17*
-*Last updated: 2026-05-17 after roadmapper mapped all 12 v1 requirements to 4 phases*
+*Last updated: 2026-05-17 after Phase 3 decision record — ADOPT-01 and ADOPT-02 declined paper-dispositive per audit §6.1/§6.2/§6.3/§5/§6.4*
