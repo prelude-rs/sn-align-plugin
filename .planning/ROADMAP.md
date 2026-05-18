@@ -14,7 +14,7 @@ Granularity: **coarse** (4 phases — discovery → compatibility → adoption �
 
 - [ ] **Phase 1: API Diff Audit** - Capture written audit of every breaking change, new API, and fixed quirk in sn-plugin-lib 0.1.19 → 0.1.43
 - [x] **Phase 2: Compatibility Upgrade** - Land the lib bump, absorb type-surface changes, restore green CI (lint, typecheck, all 87 tests) (completed 2026-05-17)
-- [ ] **Phase 3: Adopt High-Value Wins** - Conditionally pick up persistent storage and any net-negative-LOC simplifications surfaced by the audit
+- [x] **Phase 3: Adopt High-Value Wins** - Conditionally pick up persistent storage and any net-negative-LOC simplifications surfaced by the audit (completed 2026-05-18)
 - [ ] **Phase 4: Sideload Verify and Skill Propagation** - Verify on A5X2 that v0.3.0 behavior is preserved, then update the shared `sn-plugin` skill to reflect 0.1.43 reality
 
 ## Phase Details
@@ -58,7 +58,7 @@ Granularity: **coarse** (4 phases — discovery → compatibility → adoption �
   3. The orthogonal `config` ⟂ `anchorBox` invariant still holds — no adoption couples writes that were previously independent.
   4. All 87+ Jest tests still pass (test count may grow if new persistence is added); typecheck and lint remain green.
 **Plans**: 1 plan
-  - [ ] 03-01-PLAN.md — Remove KvBackend dead code + 10 KV tests; record ADOPT-01/02 decline verdicts in REQUIREMENTS / PROJECT / SUMMARY
+  - [x] 03-01-PLAN.md — Remove KvBackend dead code + 10 KV tests; record ADOPT-01/02 decline verdicts in REQUIREMENTS / PROJECT / SUMMARY
 
 ### Phase 4: Sideload Verify and Skill Propagation
 **Goal**: A built `.snplg` from the upgraded codebase is sideload-verified on A5X2 to behave like v0.3.0 (plus any new adopted capabilities), and the shared `~/.claude/skills/sn-plugin/` skill is updated to reflect 0.1.43 as the current verified target.
@@ -81,7 +81,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 (decimal phases inserted ad
 |-------|----------------|--------|-----------|
 | 1. API Diff Audit | 0/6 | Not started | - |
 | 2. Compatibility Upgrade | 1/1 | Complete   | 2026-05-17 |
-| 3. Adopt High-Value Wins | 0/1 | Not started | - |
+| 3. Adopt High-Value Wins | 1/1 | Complete   | 2026-05-18 |
 | 4. Sideload Verify and Skill Propagation | 0/TBD | Not started | - |
 
 ---
