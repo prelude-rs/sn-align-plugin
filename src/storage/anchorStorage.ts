@@ -7,38 +7,32 @@
 // Backend: in-memory only. The Supernote firmware doesn't expose a
 // key-value store through sn-plugin-lib, and no AsyncStorage native
 // module is included in the plugin host. Sibling plugins use the
-// same memory fallback. createKvBackedAnchorStorage stays exported
-// against any future firmware that bundles a real KV — it's
-// generic over the KvBackend interface defined below.
+// same memory fallback. If a future sn-plugin-lib release adds a
+// public KV API on PluginManager / NativePluginManager / PluginFileAPI,
+// re-introduce a KvBackend adapter then — until that trigger fires we
+// don't pay carrying cost for the stub (Phase 3 D-04, audit §6.1).
 //
 // The plugin's JS context survives across lasso taps and across note
 // swaps within a session, so memory is sufficient for in-session
 // persistence. State is lost when the host process is killed (device
 // restart, plugin reinstall).
 
-import {
-  isAlignmentConfig,
-  isAnchorBox,
-  type AlignmentConfig,
-  type Rect,
-  DEFAULT_ALIGNMENT_CONFIG,
-} from '../core/anchor';
-import type {Logger} from '../sdk/types';
-
-export const ANCHOR_STORAGE_KEY = '@snalign_anchor_state';
+import {type AlignmentConfig, type Rect, DEFAULT_ALIGNMENT_CONFIG} from '../core/anchor';
 
 export type AnchorState = {
   readonly config: AlignmentConfig;
   readonly anchorBox: Rect | null;
 };
 
+// Schema-versioned envelope shape. The v3 discriminator is preserved as the
+// future-migration anchor: any future persistent backend re-introducing
+// load/save round-trips parses this envelope and resets to
+// DEFAULT_ANCHOR_STATE on version mismatch (Phase 3 D-04, audit §6.1).
 export type AnchorEnvelope = {
   readonly version: 3;
   readonly config: AlignmentConfig;
   readonly anchorBox: Rect | null;
 };
-
-const SCHEMA_VERSION = 3 as const;
 
 export const DEFAULT_ANCHOR_STATE: AnchorState = {
   config: DEFAULT_ALIGNMENT_CONFIG,
@@ -51,46 +45,6 @@ export interface AnchorStorage {
   setConfig(config: AlignmentConfig): Promise<void>;
   setAnchorBox(box: Rect | null): Promise<void>;
 }
-
-type KvBackend = {
-  getItem: (key: string) => Promise<string | null>;
-  setItem: (key: string, value: string) => Promise<void>;
-  removeItem: (key: string) => Promise<void>;
-};
-
-const parseEnvelope = (raw: string | null): AnchorState => {
-  if (!raw) {
-    return DEFAULT_ANCHOR_STATE;
-  }
-  let data: unknown;
-  try {
-    data = JSON.parse(raw);
-  } catch {
-    return DEFAULT_ANCHOR_STATE;
-  }
-  if (!data || typeof data !== 'object') {
-    return DEFAULT_ANCHOR_STATE;
-  }
-  const env = data as Partial<AnchorEnvelope>;
-  if (env.version !== SCHEMA_VERSION) {
-    return DEFAULT_ANCHOR_STATE;
-  }
-  if (!isAlignmentConfig(env.config)) {
-    return DEFAULT_ANCHOR_STATE;
-  }
-  const anchorBox =
-    env.anchorBox === null || env.anchorBox === undefined ? null : isAnchorBox(env.anchorBox) ? env.anchorBox : null;
-  return {config: env.config, anchorBox};
-};
-
-const serialiseEnvelope = (state: AnchorState): string => {
-  const env: AnchorEnvelope = {
-    version: SCHEMA_VERSION,
-    config: state.config,
-    anchorBox: state.anchorBox,
-  };
-  return JSON.stringify(env);
-};
 
 const buildStorage = (
   read: () => Promise<AnchorState>,
@@ -107,26 +61,6 @@ const buildStorage = (
     await write({...current, anchorBox: box});
   },
 });
-
-export const createKvBackedAnchorStorage = (backend: KvBackend, logger?: Pick<Logger, 'error'>): AnchorStorage =>
-  buildStorage(
-    async () => {
-      try {
-        const raw = await backend.getItem(ANCHOR_STORAGE_KEY);
-        return parseEnvelope(raw);
-      } catch (e) {
-        logger?.error(`[align:storage] load failed: ${(e as Error).message}`);
-        return DEFAULT_ANCHOR_STATE;
-      }
-    },
-    async state => {
-      try {
-        await backend.setItem(ANCHOR_STORAGE_KEY, serialiseEnvelope(state));
-      } catch (e) {
-        logger?.error(`[align:storage] save failed: ${(e as Error).message}`);
-      }
-    },
-  );
 
 export const createMemoryAnchorStorage = (initial: AnchorState = DEFAULT_ANCHOR_STATE): AnchorStorage => {
   let state: AnchorState = initial;
