@@ -82,7 +82,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 (decimal phases inserted ad
 | 1. API Diff Audit | 0/6 | Not started | - |
 | 2. Compatibility Upgrade | 1/1 | Complete   | 2026-05-17 |
 | 3. Adopt High-Value Wins | 1/1 | Complete   | 2026-05-18 |
-| 4. Sideload Verify and Skill Propagation | 0/TBD | Not started | - |
+| 4. Sideload Verify and Skill Propagation | 1/2 | In Progress|  |
 
 ---
 
