@@ -92,6 +92,27 @@ The sideload-ready archive was built from `dev` HEAD via `npm run build` (Task 1
 | Build gates pre-sideload | 5 / 5 green (eslint, prettier, tsc, jest 77/77, `npm run build`) |
 | Build gates pre-Task-3 commit | 4 / 4 quick gates re-verified green (eslint, prettier, tsc, jest 77/77 — gate 5 build already validated in Task 1) |
 
+### Addendum (2026-06-07): re-link to literal 0.1.43
+
+The initial build above was produced from `dev` HEAD on 2026-06-06 12:58 against a stale local `node_modules/sn-plugin-lib/` that was still at **0.1.34** — `npm ci` had not been run after Phase 2's lockfile bump landed (PR #34 merged 2026-05-17 but the local install was never refreshed). The Phase 4 sideload therefore exercised 0.1.34 bytes on hardware, not 0.1.43 as the SUMMARY originally implied. Phase 1's audit (`lib-0.1.19-to-0.1.43-audit.md`) characterised the full 0.1.19 → 0.1.43 surface as having no breaking changes for SnAlign's call sites, so the original verdict held by transitivity — but the literal claim needed to be empirically confirmed.
+
+Refresh + re-sideload on 2026-06-07 against literally-linked 0.1.43:
+
+| Field | Value |
+|-------|-------|
+| Refresh | `npm ci` re-installed `node_modules/sn-plugin-lib/` at 0.1.43 (confirmed via `require('sn-plugin-lib/package.json').version`) |
+| 5 CI gates | all green (eslint, prettier, tsc, jest 77/77, `npm run build`) — same baseline as the original build |
+| New artifact path | `build/outputs/SnAlign.snplg` |
+| New artifact size | **266,749 bytes** (was 266,513 — diff of +236 B is empirical evidence the build picked up different lib bytes) |
+| New artifact SHA-256 | `fff806f93b8f71140649901c258a0b8c335f9e8f5008f674cb7413c839f7a3bc` |
+| Built | 2026-06-07 10:37:37 -0300 |
+| Branch / HEAD | `chore/ricardo/04-relink-0.1.43` off `dev` tip `3bb811c` (the squash-merge of PR #36) |
+| Re-sideload verdict | user-reported `approved` after a reduced smoke sweep on A5X2 (popup open / Set Anchor minimal-layout / full-popup re-open / Apply Alignment + commit + undo / Apply & Re-anchor / page-bounds warning / one locale switch) — behaviour identical to the original 0.1.34-linked sideload |
+
+**Verdict still PASS.** No D-07/D-08/D-09 classification surfaced by the re-sideload. The 14-row checklist results above stand for the literal sn-plugin-lib 0.1.43 baseline as well as the 0.1.34-linked artifact actually exercised yesterday.
+
+**Process learning:** the standard build-then-sideload sequence assumes `node_modules/` matches the lockfile. After any phase that bumps `package.json` / `package-lock.json`, `npm ci` (or `npm install`) must run locally before `npm run build` if the local copy is meant to reflect the bump. CI uses `npm ci` so this only bites the local-build-then-sideload path. Worth a one-line entry in `.claude/skills/git/SKILL.md` or `setup-and-build.md` as a follow-up.
+
 ## Checklist Results
 
 The 14-row test plan was driven on A5X2 with the artifact above. Rows 1, 2, 13, 14 are evidence-from-tooling (build stats / adb observation / grep / aggregate). Rows 3-12 are user-verified end-to-end on hardware; the user reported "Every verification passed" as the resume signal — per-row verbatim logcat snippets were not captured to file.
