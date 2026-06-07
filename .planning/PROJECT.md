@@ -26,16 +26,17 @@ Translate a lasso selection so a chosen reference point lands on a chosen refere
 - ✓ Seven-locale i18n — en, zh_CN, zh_TW, ja, th, nl, de. Plugin name + button name + all UI strings localized. — v0.2.0
 - ✓ Strict CI gates — lint, prettier, tsc (strict + `noUncheckedIndexedAccess` + `exactOptionalPropertyTypes`), Jest (87 tests across 7 suites), no-op `build-check` aggregator. — v0.2.0
 - ✓ Tag-only release workflow — `workflow_dispatch` only release.yml; version sourced from `package.json` on main; dev → main release-train PR pattern. — v0.2.0
+- ✓ `sn-plugin-lib` upgraded `^0.1.19` → `^0.1.43`; project builds, 77/77 Jest tests pass against new lib, sideload on A5X2 confirms v0.3.0 behavior preserved (14-row checklist aggregate PASS). Test count moved 87 → 77 in Phase 3 (KV-test deletion alongside dead `createKvBackedAnchorStorage` removal). — v0.4-prep (Phase 2 + Phase 3 + Phase 4)
+- ✓ 0.1.19 → 0.1.43 API-diff audit captured at `.planning/research/lib-0.1.19-to-0.1.43-audit.md` — breaking changes, behavioral changes, net-new APIs, with §7 cross-reference table driving Phase 4 skill propagation. — v0.4-prep (Phase 1)
+- ✓ ADOPT-01 (persistent storage) + ADOPT-02 (simplification candidates: `modifyButtonRes`, page-bounds query, `lassoElements`, `generateLassoPreview`, `showPluginView`) both Declined as paper-dispositive per audit §6.1 / §6.2 / §5 / §6.3 / §6.4. Dead `KvBackend` scaffolding removed in Phase 3-01. — v0.4-prep (Phase 3)
+- ✓ `sn-plugin` skill at `~/.claude/skills/sn-plugin/` updated to reflect sn-plugin-lib 0.1.43 — SKILL.md header bump + Verified runtime targets line; api-gotchas rows 10/12 verified-on stamps, rows 13/14 paper-only footnote, row 28 refined; storage.md SnAlign citation reframed (KvBackend pattern preserved); setup-and-build.md Environment Requirements row; patterns.md no-new-patterns footer. — v0.4-prep (Phase 4 Plan 04-02)
+- ✓ Code-ready on `chore/ricardo/04-sideload-verify-skill` for merge into `dev → main`. No v0.4.0 tag in this milestone — RELEASE-01 deferred to v2 per ROADMAP §5. — v0.4-prep (Phase 4 close-out)
 
 ### Active
 
 <!-- Current scope. Building toward these. -->
 
-- [ ] Upgrade `sn-plugin-lib` from `^0.1.19` → `^0.1.43` (latest as of 2026-05-15). Project must keep building, all 87 tests must pass, sideload-test must succeed on A5X2.
-- [ ] Audit the 0.1.19 → 0.1.43 API surface diff (types + source + docs at https://docs.supernote.com/en). Identify breaking changes, new APIs, fixed quirks.
-- [ ] Adopt high-value wins unlocked by the upgrade — primary candidates: real persistent storage (if AsyncStorage native module now bundled OR a new KV API exists), working `modifyButtonRes`, any new lasso/page APIs that simplify current code.
-- [ ] Update the `sn-plugin` skill at `~/.claude/skills/sn-plugin/` to reflect 0.1.43 reality — api-gotchas (verify which still apply), patterns (any new recipes), storage (update AsyncStorage failure-mode note if status changed), setup-and-build (version bump for the runtime-targets matrix).
-- [ ] Code-ready on dev → main (no v0.4.0 tag yet). User will sideload-test before deciding to release.
+_None — v0.4-prep milestone is complete. Next milestone routes via `/gsd-new-milestone` or by adding entries here._
 
 ### Out of Scope
 
@@ -106,4 +107,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-17 after Phase 3 (Adopt High-Value Wins) recorded ADOPT-01 + ADOPT-02 decline verdicts (paper-dispositive per audit §6.1/§6.2/§6.3/§5/§6.4; KvBackend dead code removed in 03-01 refactor).*
+*Last updated: 2026-06-07 after Phase 4 (Sideload Verify and Skill Propagation) closed the v0.4-prep milestone — sn-plugin-lib 0.1.43 verified on A5X2; sn-plugin skill propagated; code-ready on dev → main with v0.4.0 release tag deferred to v2 (RELEASE-01)*

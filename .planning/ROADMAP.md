@@ -15,7 +15,7 @@ Granularity: **coarse** (4 phases — discovery → compatibility → adoption �
 - [ ] **Phase 1: API Diff Audit** - Capture written audit of every breaking change, new API, and fixed quirk in sn-plugin-lib 0.1.19 → 0.1.43
 - [x] **Phase 2: Compatibility Upgrade** - Land the lib bump, absorb type-surface changes, restore green CI (lint, typecheck, all 87 tests) (completed 2026-05-17)
 - [x] **Phase 3: Adopt High-Value Wins** - Conditionally pick up persistent storage and any net-negative-LOC simplifications surfaced by the audit (completed 2026-05-18)
-- [ ] **Phase 4: Sideload Verify and Skill Propagation** - Verify on A5X2 that v0.3.0 behavior is preserved, then update the shared `sn-plugin` skill to reflect 0.1.43 reality
+- [x] **Phase 4: Sideload Verify and Skill Propagation** - Verify on A5X2 that v0.3.0 behavior is preserved, then update the shared `sn-plugin` skill to reflect 0.1.43 reality (completed 2026-06-07)
 
 ## Phase Details
 
@@ -70,7 +70,11 @@ Granularity: **coarse** (4 phases — discovery → compatibility → adoption �
   3. `~/.claude/skills/sn-plugin/references/api-gotchas.md` reflects any 0.1.43 API signature, supported page size, or `editDataTypes` changes; misleading-name callouts (`Element.recognizeResult`, `EinkManager.enableFullUiAuto`) are re-verified.
   4. `~/.claude/skills/sn-plugin/references/storage.md` matches current reality (AsyncStorage status, `node_change/` escape hatch validity, `KvBackend` fallback need) and `references/setup-and-build.md` "Verified runtime targets" matrix shows `sn-plugin-lib ^0.1.43` with RN 0.79.2 re-verified.
   5. `~/.claude/skills/sn-plugin/references/patterns.md` gains any new patterns the upgrade revealed (or is explicitly noted as unchanged if no new patterns warranted).
-**Plans**: TBD
+
+**Plans**: 2 plans
+
+  - [x] 04-01-PLAN.md — Sideload-verify SnAlign v0.3.0 on A5X2 against sn-plugin-lib 0.1.43 (UPGRADE-04)
+  - [x] 04-02-PLAN.md — Propagate audit + sideload findings into `~/.claude/skills/sn-plugin/` (SKILL-01..05)
 
 ## Progress
 
@@ -82,7 +86,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 (decimal phases inserted ad
 | 1. API Diff Audit | 0/6 | Not started | - |
 | 2. Compatibility Upgrade | 1/1 | Complete   | 2026-05-17 |
 | 3. Adopt High-Value Wins | 1/1 | Complete   | 2026-05-18 |
-| 4. Sideload Verify and Skill Propagation | 0/TBD | Not started | - |
+| 4. Sideload Verify and Skill Propagation | 2/2 | Complete    | 2026-06-07 |
 
 ---
 
