@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.3.0
+milestone: v0.4-prep
 milestone_name: milestone
-status: phase-complete
+status: Awaiting next milestone
 stopped_at: Phase 4 complete (skill propagation landed)
-last_updated: "2026-06-07T00:00:00.000Z"
-last_activity: 2026-06-07 -- Plan 04-02 complete (SKILL-01..05 propagated)
+last_updated: "2026-06-07T13:54:57.759Z"
+last_activity: 2026-06-07 — Milestone v0.4-prep completed and archived
 progress:
   total_phases: 4
-  completed_phases: 4
-  total_plans: 10
+  completed_phases: 3
+  total_plans: 8
   completed_plans: 10
-  percent: 100
+  percent: 75
 ---
 
 # Project State
@@ -21,16 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-17)
 
 **Core value:** Translate a lasso selection so a chosen reference point lands on a chosen reference point of a saved anchor — accurately, in one tap, on the device.
-**Current focus:** Phase 04 complete — milestone code-ready; v0.4.0 tag deferred to v2 (RELEASE-01)
+**Current focus:** v0.4-prep milestone complete (Phases 1-4 shipped, archived 2026-06-07) — awaiting next milestone (likely RELEASE-01: cut v0.4.0 tag — see `.planning/milestones/v0.4-prep-REQUIREMENTS.md` v2 backlog)
 
 ## Current Position
 
-Phase: 04 (sideload-verify-and-skill-propagation) — COMPLETE
-Plan: 2 of 2 complete
-Status: Phase 04 complete — milestone code-ready (no v0.4.0 tag per PROJECT.md / RELEASE-01)
-Last activity: 2026-06-07 -- Plan 04-02 (SKILL-01..05 skill propagation) complete
-
-Progress: [██████████] 100% (4 of 4 phases complete)
+Phase: Milestone v0.4-prep complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-06-07 — Milestone v0.4-prep completed and archived
 
 ## Performance Metrics
 
@@ -90,3 +88,7 @@ Items acknowledged and carried forward:
 Last session: 2026-06-07T00:00:00.000Z
 Stopped at: Phase 4 complete (skill propagation landed)
 Resume file: .planning/phases/04-sideload-verify-and-skill-propagation/04-02-SUMMARY.md
+
+## Operator Next Steps
+
+- Start the next milestone with /gsd-new-milestone
