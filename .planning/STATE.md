@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v0.3.0
 milestone_name: milestone
-status: executing
-stopped_at: Phase 4 context gathered
-last_updated: "2026-06-06T15:53:15.746Z"
-last_activity: 2026-06-06 -- Phase 04 execution started
+status: phase-complete
+stopped_at: Phase 4 complete (skill propagation landed)
+last_updated: "2026-06-07T00:00:00.000Z"
+last_activity: 2026-06-07 -- Plan 04-02 complete (SKILL-01..05 propagated)
 progress:
   total_phases: 4
-  completed_phases: 2
-  total_plans: 8
-  completed_plans: 8
-  percent: 50
+  completed_phases: 4
+  total_plans: 10
+  completed_plans: 10
+  percent: 100
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-17)
 
 **Core value:** Translate a lasso selection so a chosen reference point lands on a chosen reference point of a saved anchor — accurately, in one tap, on the device.
-**Current focus:** Phase 04 — sideload-verify-and-skill-propagation
+**Current focus:** Phase 04 complete — milestone code-ready; v0.4.0 tag deferred to v2 (RELEASE-01)
 
 ## Current Position
 
-Phase: 04 (sideload-verify-and-skill-propagation) — EXECUTING
-Plan: 1 of 2
-Status: Executing Phase 04
-Last activity: 2026-06-06 -- Phase 04 execution started
+Phase: 04 (sideload-verify-and-skill-propagation) — COMPLETE
+Plan: 2 of 2 complete
+Status: Phase 04 complete — milestone code-ready (no v0.4.0 tag per PROJECT.md / RELEASE-01)
+Last activity: 2026-06-07 -- Plan 04-02 (SKILL-01..05 skill propagation) complete
 
-Progress: [█████░░░░░] 50% (2 of 4 phases complete)
+Progress: [██████████] 100% (4 of 4 phases complete)
 
 ## Performance Metrics
 
@@ -63,6 +63,11 @@ Recent decisions affecting current work:
 
 - Project intake: "Adopt high-value wins from lib upgrade" — pending audit-driven evidence
 - Project intake: "Code-ready milestone (no v0.4.0 tag yet)" — sideload-test first, release deferred to v2
+- Phase 4 D-03: api-gotchas row 28 paper-only refinement (NativePluginManager-only type + public wrapper unbridged + native Java implements + on-device unverified)
+- Phase 4 D-06: direct writes to skill files; no diff capture, no mirror copy; SUMMARY = files + one-line-per-change
+- Phase 4 D-10: storage.md SnAlign citation removed; KvBackend pattern stays
+- Phase 4 D-11: SKILL.md line 211 + setup-and-build.md table both bumped to ^0.1.43
+- Phase 4 D-14: hybrid stamp format — file-level header bump on SKILL.md; per-row stamps on api-gotchas rows 10 + 12
 
 ### Pending Todos
 
@@ -82,6 +87,6 @@ Items acknowledged and carried forward:
 
 ## Session Continuity
 
-Last session: 2026-05-17T23:34:04.118Z
-Stopped at: Phase 3 context gathered
-Resume file: .planning/phases/03-adopt-high-value-wins/03-CONTEXT.md
+Last session: 2026-06-07T00:00:00.000Z
+Stopped at: Phase 4 complete (skill propagation landed)
+Resume file: .planning/phases/04-sideload-verify-and-skill-propagation/04-02-SUMMARY.md

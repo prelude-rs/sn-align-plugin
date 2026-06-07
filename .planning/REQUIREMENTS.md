@@ -22,11 +22,11 @@
 
 ### Skill — keep `~/.claude/skills/sn-plugin/` accurate for future plugins
 
-- [ ] **SKILL-01**: `SKILL.md` gotchas list audited against 0.1.43. Items still valid retain their `verified-on` line. Items resolved by the upgrade are removed (or marked "fixed in 0.1.x — older firmware may still hit"). Items discovered during the upgrade are added.
-- [ ] **SKILL-02**: `references/api-gotchas.md` reflects 0.1.43 — any API signature, supported page size, or `editDataTypes` change is updated. Misleading-name callouts (`Element.recognizeResult`, `EinkManager.enableFullUiAuto`) re-verified.
-- [ ] **SKILL-03**: `references/storage.md` accurate for current state — whether AsyncStorage is now bundled out-of-box, whether the `node_change/` escape hatch is still the path, whether the in-memory `KvBackend` fallback is still needed. Code example updated to match whichever is recommended.
-- [ ] **SKILL-04**: `references/setup-and-build.md` "Verified runtime targets" matrix updated with `sn-plugin-lib ^0.1.43` (replacing `^0.1.19`). Other version locks (RN 0.79.2) re-verified.
-- [ ] **SKILL-05**: `references/patterns.md` enriched with any new patterns the upgrade reveals (new API recipes, new gotchas-as-patterns). Skip if no new patterns warranted.
+- [x] **SKILL-01**: `SKILL.md` gotchas list audited against 0.1.43. Items still valid retain their `verified-on` line. Items resolved by the upgrade are removed (or marked "fixed in 0.1.x — older firmware may still hit"). Items discovered during the upgrade are added. — *Completed Plan 04-02 (2026-06-07): gotchas section header bumped (line 147) to `re-confirmed 2026-05 against sn-plugin-lib 0.1.43`; `Verified runtime targets` (line 211) bumped from `^0.1.19` to `^0.1.43 (verified A5X2 2026-05)`. Audit §7.1: 6 SKILL.md claims still-valid; K3 lasso context routes to api-gotchas row 10 (SKILL-02 covers).*
+- [x] **SKILL-02**: `references/api-gotchas.md` reflects 0.1.43 — any API signature, supported page size, or `editDataTypes` change is updated. Misleading-name callouts (`Element.recognizeResult`, `EinkManager.enableFullUiAuto`) re-verified. — *Completed Plan 04-02 (2026-06-07): rows 10 + 12 verified-on stamped from 04-01 §8.1 verdict; rows 13/14 paper-only footnote citing audit §5 N-08 + §7.2 + §8.7; row 28 refined per CONTEXT D-03 (NativePluginManager type at `.d.ts:112`, public wrapper unbridged, native Java impl at `PluginModule.java:113`, on-device unverified per D-04); rows 26 + 27 (misleading-name callouts) retained.*
+- [x] **SKILL-03**: `references/storage.md` accurate for current state — whether AsyncStorage is now bundled out-of-box, whether the `node_change/` escape hatch is still the path, whether the in-memory `KvBackend` fallback is still needed. Code example updated to match whichever is recommended. — *Completed Plan 04-02 (2026-06-07): per CONTEXT D-10, SnAlign `anchorStorage` citation removed (Phase 3 D-04 deleted the dead `createKvBackedAnchorStorage`); sn-shapes `favoritesStorage` precedent preserved; KvBackend interface pattern retained intact (still valid for plugins that need persistence); AsyncStorage status unchanged per audit §6.1 + §7.3 S2.*
+- [x] **SKILL-04**: `references/setup-and-build.md` "Verified runtime targets" matrix updated with `sn-plugin-lib ^0.1.43` (replacing `^0.1.19`). Other version locks (RN 0.79.2) re-verified. — *Completed Plan 04-02 (2026-06-07): Environment Requirements table now carries `sn-plugin-lib | ^0.1.43 (latest verified) | Re-verified 2026-05 on A5X2` row; React Native row carries `Re-verified 2026-05`; icon-sibling `buildPlugin.sh` patch §3b unchanged per audit §7.4.*
+- [x] **SKILL-05**: `references/patterns.md` enriched with any new patterns the upgrade reveals (new API recipes, new gotchas-as-patterns). Skip if no new patterns warranted. — *Completed Plan 04-02 (2026-06-07): per CONTEXT D-14 + audit §7.4 explicit "no entries flagged", one-line footer paragraph appended: `Re-verified 2026-05 against sn-plugin-lib 0.1.43 — no new patterns warranted by the 0.1.19→0.1.43 upgrade. See audit §7.4 (Phase 4 SKILL-05).` 17 existing patterns untouched; no patterns invented.*
 
 ## v2 Requirements
 
@@ -65,12 +65,12 @@ Deferred to future milestone after this code-ready set lands and sideloads clean
 | UPGRADE-03 | Phase 2 (Compatibility Upgrade) | Pending |
 | ADOPT-01 | Phase 3 (Adopt High-Value Wins) | Declined |
 | ADOPT-02 | Phase 3 (Adopt High-Value Wins) | Declined |
-| UPGRADE-04 | Phase 4 (Sideload Verify and Skill Propagation) | Pending |
-| SKILL-01 | Phase 4 (Sideload Verify and Skill Propagation) | Pending |
-| SKILL-02 | Phase 4 (Sideload Verify and Skill Propagation) | Pending |
-| SKILL-03 | Phase 4 (Sideload Verify and Skill Propagation) | Pending |
-| SKILL-04 | Phase 4 (Sideload Verify and Skill Propagation) | Pending |
-| SKILL-05 | Phase 4 (Sideload Verify and Skill Propagation) | Pending |
+| UPGRADE-04 | Phase 4 (Sideload Verify and Skill Propagation) | Complete (Plan 04-01, 2026-06-07) |
+| SKILL-01 | Phase 4 (Sideload Verify and Skill Propagation) | Complete (Plan 04-02, 2026-06-07) |
+| SKILL-02 | Phase 4 (Sideload Verify and Skill Propagation) | Complete (Plan 04-02, 2026-06-07) |
+| SKILL-03 | Phase 4 (Sideload Verify and Skill Propagation) | Complete (Plan 04-02, 2026-06-07) |
+| SKILL-04 | Phase 4 (Sideload Verify and Skill Propagation) | Complete (Plan 04-02, 2026-06-07) |
+| SKILL-05 | Phase 4 (Sideload Verify and Skill Propagation) | Complete (Plan 04-02, 2026-06-07) |
 
 **Coverage:**
 - v1 requirements: 12 total
